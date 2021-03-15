@@ -1,3 +1,14 @@
+function(add_mpi_test name no_mpi_proc)
+      # My test are all called name_test.cpp
+      add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${MPITestSources})
+      add_dependencies(${name} googletest)
+  # Make sure to link MPI here too:
+  target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
+  #set(test_parameters " ${MPIEXEC_NUMPROC_FLAG} ${no_mpi_proc} ./${name}")
+  #add_test(NAME ${name} COMMAND "${MPIEXEC} ${test_parameters}")
+  add_test(NAME ${name} COMMAND ParallelTemperingTest)
+endfunction(add_mpi_test)
+
 # Download and unpack googletest at configure time
 configure_file(${PROJECT_SOURCE_DIR}/test/CMakeLists.txt.in googletest-download/CMakeLists.txt)
 execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
@@ -33,6 +44,9 @@ endif()
 # Include file lists
 include(test/FileList.cmake)
 
+if(MPI_FOUND)
+  add_mpi_test(GOMC_MPI_Test 2)
+else()
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(GOMC_Test ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
 target_link_libraries(GOMC_Test gtest_main)
@@ -41,7 +55,8 @@ add_test(NAME CircuitTester COMMAND DialaTest)
 add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
 add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
 add_test(NAME EndianTest COMMAND TestBitSwap)
-add_test(NAME ParallelTemperingTest COMMAND ParallelTemperingTest)
-if(MPI_FOUND)
-  target_link_libraries(GOMC_Test ${MPI_LIBRARIES})
 endif()
+
+
+
+
