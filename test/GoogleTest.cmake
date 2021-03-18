@@ -2,7 +2,6 @@ function(add_mpi_test name no_mpi_proc)
   set(NVT_flags "-DENSEMBLE=1")
       # My test are all called name_test.cpp
       add_executable(${name} ${GOMCMPISources} ${GOMCMPIHeaders} ${libHeaders} ${libSources} ${MPITestSources})
-      add_dependencies(${name} googletest)
   # Make sure to link MPI here too:
   target_link_libraries(${name} ${MPI_LIBRARIES} gtest_main)
   set_target_properties(${name} PROPERTIES 
@@ -47,9 +46,12 @@ endif()
 # Include file lists
 include(test/FileList.cmake)
 
-if(MPI_FOUND)
+if(GOMC_GTEST_MPI)
   add_mpi_test(GOMC_MPI_Test 2)
-else()
+  set(GOMC_GTEST_MPI 1)
+endif()
+
+if(GOMC_GTEST)
 # Now simply link against gtest or gtest_main as needed. Eg
 add_executable(GOMC_Test ${sources} ${headers} ${libHeaders} ${libSources} ${TestHeaders} ${TestSources})
 target_link_libraries(GOMC_Test gtest_main)
@@ -58,6 +60,7 @@ add_test(NAME CircuitTester COMMAND DialaTest)
 add_test(NAME MolLookupTest COMMAND CheckConsensusBeta)
 add_test(NAME PSFParserTest COMMAND CheckProtAndWaterTest)
 add_test(NAME EndianTest COMMAND TestBitSwap)
+set(GOMC_GTEST 1)
 endif()
 
 

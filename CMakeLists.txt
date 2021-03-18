@@ -39,9 +39,12 @@ configure_file(
 	)
 include_directories("${PROJECT_BINARY_DIR}")
 
-# Enable google test
-# for now we will disable testing for intel compiler
-if(NOT "${CMAKE_CXX_COMPILER_ID}" STREQUAL "Intel")
+#Optional CMake Argument
+option(GOMC_GTEST    "Build unit tests for GOMC" OFF)
+option(GOMC_GTEST_MPI    "Build unit tests for GOMC - MPI Enabled" OFF)
+
+# Enable google test, for now these vars of exclusive
+if(GOMC_GTEST OR GOMC_GTEST_MPI)
   enable_testing()
   include(test/GoogleTest.cmake)
 endif()
