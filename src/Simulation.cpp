@@ -179,7 +179,7 @@ bool Simulation::RecalculateAndCheck(void)
 
   #if GOMC_GTEST_MPI
       double Simulation::GetSystemEnergy(void){
-        return (system->potential.Total();
+        return system->potential.Total();
       }
       void Simulation::ExchangeReplicas(int worldRank){
         PTUtils->forceExchange(worldRank, system->coordinates, system->com);
