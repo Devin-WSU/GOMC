@@ -107,7 +107,6 @@ void Simulation::RunSimulation(void)
         for(int box = 0; box < BOX_TOTAL; box++) {
           system->calcEwald->BoxReciprocalSums(box, system->coordinates);
           system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
-          system->calcEwald->UpdateRecip(box);
         }
       }
       system->potential = system->calcEnergy.SystemTotal();
@@ -190,7 +189,6 @@ bool Simulation::RecalculateAndCheck(void)
           for(int box = 0; box < BOX_TOTAL; box++) {
             system->calcEwald->BoxReciprocalSums(box, system->coordinates);
             system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
-            system->calcEwald->UpdateRecip(box);
           }
         }
         
