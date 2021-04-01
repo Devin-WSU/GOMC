@@ -338,6 +338,8 @@ void PDBOutput::PrintAtomsRebuildRestart(const uint b)
         XYZ coor = coordCurrRef.Get(p);
         boxDimRef.UnwrapPBC(coor, b, ref);
         if (molRef.kinds[k].isMultiResidue){
+          /* Since we use molecule as a proxy for ResID, we want to increment if a molecule has more than 1 resID */
+          /* intraMoleculeResIDs is an array of the resID offset, for each atom, 0 0 0 1 1 1 .. etc. */
           FormatAtom(line, atom, molecule + molRef.kinds[k].intraMoleculeResIDs[p - pStart], molRef.chain[p],
                     molRef.kinds[k].atomNames[p - pStart], molRef.kinds[k].resNames[p - pStart]);
         } else {
