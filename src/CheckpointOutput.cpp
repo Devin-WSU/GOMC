@@ -63,26 +63,26 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 }
 
-void CheckpointOutput::DoOutput(const ulong step)
+void CheckpointOutput::DoOutput(const ulong step){}
+
+void CheckpointOutput::DoOutputRestart(const ulong step)
 {
-  if(enableOutCheckpoint) {
-    GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-    std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-    openOutputFile();
-    printGOMCVersion();
-    printStepNumber(step);
-    printRandomNumbers();
-    printMoleculeLookupData();
-    printMoveSettingsData();
-    printMoleculesData();
+  GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
+  std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
+  openOutputFile();
+  printGOMCVersion();
+  printStepNumber(step);
+  printRandomNumbers();
+  printMoleculeLookupData();
+  printMoveSettingsData();
+  printMoleculesData();
 #if GOMC_LIB_MPI
-    printParallelTemperingBoolean();
-    if(enableParallelTempering)
-      printRandomNumbersParallelTempering();
+  printParallelTemperingBoolean();
+  if(enableParallelTempering)
+    printRandomNumbersParallelTempering();
 #endif
-    std::cout << "Checkpoint saved to " << filename << std::endl;
-    GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-  }
+  std::cout << "Checkpoint saved to " << filename << std::endl;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
 void CheckpointOutput::setGOMCVersion()

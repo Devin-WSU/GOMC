@@ -46,6 +46,7 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
 private:
   std::string GetDefaultAtomStr();
 

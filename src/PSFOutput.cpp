@@ -78,7 +78,7 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
   }
 }
 
-void PSFOutput::DoOutput(const ulong step)
+void PSFOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {
@@ -100,14 +100,8 @@ void PSFOutput::DoOutput(const ulong step)
   GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_RESTART_OUTPUT);
 }
 
-void PSFOutput::Output(const ulong step)
-{
-  //NEW_RESTART_CODE
-  if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutput(step + 1);
-  }
-  //NEW_RESTART_CODE
-}
+/* Output (merged_psf) occurs in Constructor only */
+void PSFOutput::DoOutput(const ulong step){}
 
 void PSFOutput::CountMolecules()
 {

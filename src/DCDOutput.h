@@ -63,6 +63,7 @@ public:
     }
   }
 
+
   //PDB does not need to sample on every step, so does nothing.
   virtual void Sample(const ulong step) {}
 
@@ -70,6 +71,8 @@ public:
                     config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
+
 private:
   // Copy cell length and angles to unitcell[6]
   void Copy_lattice_to_unitcell(double *unitcell, int box);

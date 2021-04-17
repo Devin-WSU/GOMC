@@ -39,9 +39,11 @@ public:
 
   virtual void DoOutput(const ulong step) = 0;
 
+  virtual void DoOutputRestart(const ulong step) = 0;
+
   virtual void Sample(const ulong step) = 0;
 
-  virtual void Output(const ulong step)
+  virtual void Output(const ulong step) final
   {
     if (!enableOut) {
       return;
@@ -49,11 +51,16 @@ public:
       Sample(step);
     }
 
-    // We will output either when the step number is every stepsPerOut
-    // Or recalculate trajectory is enabled (forceOutput)
+    /* We will output either when the step number is every stepsPerOut
+       Or recalculate trajectory is enabled (forceOutput) */
     if (((step + 1) % stepsPerOut == 0) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
+    }
+
+    /* We will output if the step number is every stepsRestPerOut */
+    if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
+      DoOutputRestart(step + 1);
     }
   }
 
@@ -127,10 +134,9 @@ public:
 #if GOMC_LIB_MPI
   std::string pathToReplicaOutputDirectory;
 #endif
-  ulong stepsPerOut, stepsTillEquil, totSimSteps;
-  bool enableOut, firstPrint;
+  ulong stepsPerOut, stepsRestPerOut, stepsTillEquil, totSimSteps;
+  bool enableOut, enableRestOut, firstPrint;
   bool forceOutput;
-
   //Contains references to various objects.
   OutputVars * var;
 };

@@ -34,6 +34,7 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   }
 }
 
+
 void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
@@ -179,65 +180,63 @@ void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
 void DCDOutput::DoOutput(const ulong step)
 {
   // Output dcd coordinates and xst file
-  if(enableStateOut) {
-    GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
-    int numAtoms = coordCurrRef.Count();
-    // Determine which molecule is in which box. Assume we are in NVT
-    // or NPT, otherwise, SetMolBoxVec would adjust the value.
-    std::vector<int> molInBox(molRef.count, 0);
-    if (BOX_TOTAL > 1) SetMolBoxVec(molInBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      //  Copy the coordinates for output
-      SetCoordinates(molInBox, b);
-      //  Write out the values for this step
-      printf("Writing DCD coordinate to file %s at step %lu \n",
-        outDCDStateFile[b], step+1);
-      fflush(stdout);
+  GOMC_EVENT_START(1, GomcProfileEvent::DCD_OUTPUT);
+  int numAtoms = coordCurrRef.Count();
+  // Determine which molecule is in which box. Assume we are in NVT
+  // or NPT, otherwise, SetMolBoxVec would adjust the value.
+  std::vector<int> molInBox(molRef.count, 0);
+  if (BOX_TOTAL > 1) SetMolBoxVec(molInBox);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    //  Copy the coordinates for output
+    SetCoordinates(molInBox, b);
+    //  Write out the values for this step
+    printf("Writing DCD coordinate to file %s at step %lu \n",
+      outDCDStateFile[b], step+1);
+    fflush(stdout);
 
-      double unitcell[6];
-      Copy_lattice_to_unitcell(unitcell, b);
-      int ret_code = write_dcdstep(stateFileFileid[b], numAtoms, x, y, z, unitcell);
-    
-      if (ret_code < 0) {
-        char err_msg[257];
-        sprintf(err_msg, "Writing of DCD coordinate %s failed at step %lu!",
-          outDCDStateFile[b], step+1);
-        NAMD_err(err_msg);
-      }
-      printf("Finished writing DCD coordinate to file %s at step %lu \n",
+    double unitcell[6];
+    Copy_lattice_to_unitcell(unitcell, b);
+    int ret_code = write_dcdstep(stateFileFileid[b], numAtoms, x, y, z, unitcell);
+  
+    if (ret_code < 0) {
+      char err_msg[257];
+      sprintf(err_msg, "Writing of DCD coordinate %s failed at step %lu!",
         outDCDStateFile[b], step+1);
-
-      // write the cellbasis data to xst file
-      Write_Extension_System_Data(xstFile[b], step, b);
+      NAMD_err(err_msg);
     }
-    GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_OUTPUT);
-  }
+    printf("Finished writing DCD coordinate to file %s at step %lu \n",
+      outDCDStateFile[b], step+1);
 
+    // write the cellbasis data to xst file
+    Write_Extension_System_Data(xstFile[b], step, b);
+  }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_OUTPUT);
+}
+
+void DCDOutput::DoOutputRestart(const ulong step)
+{
   // Output restart binary coordinates and xsc file
-  if (((step + 1) % stepsRestartPerOut == 0) && enableRestartOut) {
-    GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      int numAtomInBox = NumAtomInBox(b);
-      // Copy the coordinate data for each box into AOS
-      SetMolInBox(b);
-      printf("Writing binary restart coordinate to file %s at step %lu \n",
-        outDCDRestartFile[b], step+1);
-      //  Generate a binary restart file
-      Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
-      printf("Finished writing binary restart coordinate to file %s at step %lu \n",
-        outDCDRestartFile[b], step+1);
-      
-      // write XSC file
-      NAMD_backup_file(outXSCFile[b], ".BAK");
-      xscFile[b].openOverwrite();
-      Write_Extension_System_Header(xscFile[b]);
-      // write the cellbasis data to xst file
-      Write_Extension_System_Data(xscFile[b], step, b);
-      xscFile[b].close();
-    }
-    GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
+  GOMC_EVENT_START(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    int numAtomInBox = NumAtomInBox(b);
+    // Copy the coordinate data for each box into AOS
+    SetMolInBox(b);
+    printf("Writing binary restart coordinate to file %s at step %lu \n",
+      outDCDRestartFile[b], step+1);
+    //  Generate a binary restart file
+    Write_binary_file(outDCDRestartFile[b], numAtomInBox, restartCoor[b]);
+    printf("Finished writing binary restart coordinate to file %s at step %lu \n",
+      outDCDRestartFile[b], step+1);
+    
+    // write XSC file
+    NAMD_backup_file(outXSCFile[b], ".BAK");
+    xscFile[b].openOverwrite();
+    Write_Extension_System_Header(xscFile[b]);
+    // write the cellbasis data to xst file
+    Write_Extension_System_Data(xscFile[b], step, b);
+    xscFile[b].close();
   }
-
+  GOMC_EVENT_STOP(1, GomcProfileEvent::DCD_RESTART_OUTPUT);
 }
 
 int DCDOutput::NumAtomInBox(const int box)

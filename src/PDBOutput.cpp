@@ -174,16 +174,10 @@ void PDBOutput::DoOutput(const ulong step)
     }
     GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
   }
-  //NEW_RESTART_CODE
-
-  if (step != 0 && ((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-    DoOutputRebuildRestart(step + 1);
-  }
-  //NEW_RESTART_CODE
 }
 
 //NEW_RESTART_CODE
-void PDBOutput::DoOutputRebuildRestart(const uint step)
+void PDBOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::PDB_RESTART_OUTPUT);
   for (uint b = 0; b < BOX_TOTAL; ++b) {

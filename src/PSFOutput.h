@@ -37,8 +37,8 @@ public:
   virtual void Init(pdb_setup::Atoms const& atoms, config_setup::Output const& output);
 
   virtual void DoOutput(const ulong step);
-
-  virtual void Output(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
+  //virtual void Output(const ulong step);
 
 private:
   const Molecules* molecules;
