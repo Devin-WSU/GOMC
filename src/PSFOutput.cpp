@@ -43,11 +43,7 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
     molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
-  CountMolecules();
-  PrintPSF(set.config.out.state.files.psf.name);
-  std::cout << "Printed combined psf to file "
-            << set.config.out.state.files.psf.name << '\n';
-
+  outFName = set.config.out.state.files.psf.name;
 }
 
 
@@ -56,8 +52,17 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
+  enableOut = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
   stepsRestPerOut = output.restart.settings.frequency;
+  
+  if (enableOut){
+    CountMolecules();
+    PrintPSF(outFName);
+    std::cout << "Printed combined psf to file "
+              << outFName << '\n';
+  }
+
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.

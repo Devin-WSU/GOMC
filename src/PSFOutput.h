@@ -75,11 +75,8 @@ private:
 
   //NEW_RESTART_CODE
   FILE * outRebuildRestart[BOX_TOTAL];
+  std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
-  bool enableRestOut;
-  ulong stepsRestPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState;
 };
 
 #endif
