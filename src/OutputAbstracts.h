@@ -45,7 +45,7 @@ public:
 
   virtual void Output(const ulong step) final
   {
-    if (!enableOut) {
+    if (!enableOut && !enableRestOut && !forceOutput) {
       return;
     } else {
       Sample(step);
@@ -53,14 +53,14 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    if (((step + 1) % stepsPerOut == 0) || forceOutput) {
+    if (((step + 1) % stepsPerOut == 0) && enableOut || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
 
     /* We will output if the step number is every stepsRestPerOut */
     if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
-      DoOutputRestart(step + 1);
+      DoOutputRestart(step);
     }
   }
 

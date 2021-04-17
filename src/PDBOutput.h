@@ -92,11 +92,6 @@ private:
 
   Writer outF[BOX_TOTAL];
   Writer outRebuildRestart[BOX_TOTAL];
-  bool enableRestOut;
-  ulong stepsRestPerOut;
-  ulong stepsCoordPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState;
   std::vector<std::string> pStr;
   int frameNumber[BOX_TOTAL];
 };

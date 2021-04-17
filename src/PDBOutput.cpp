@@ -39,17 +39,16 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableOutState = output.state.settings.enable;
+  enableOut = output.state.settings.enable;
   enableRestOut = output.restart.settings.enable;
-  enableOut = enableOutState | enableRestOut;
-  stepsCoordPerOut = output.state.settings.frequency;
-  stepsRestPerOut = output.restart.settings.frequency;
-  if (stepsCoordPerOut < stepsRestPerOut)
-    stepsPerOut = output.state.settings.frequency;
-  else
-    stepsPerOut = output.restart.settings.frequency;
 
-  if (enableOutState) {
+  stepsPerOut = output.state.settings.frequency;
+  stepsRestPerOut = output.restart.settings.frequency;
+
+  if (stepsPerOut > stepsRestPerOut)
+    stepsPerOut = stepsRestPerOut;
+
+  if (enableOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
       bStr = "Box ";
@@ -162,18 +161,16 @@ void PDBOutput::FormatAtom
 
 void PDBOutput::DoOutput(const ulong step)
 {
-  if(enableOutState) {
-    GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
-    std::vector<uint> mBox(molRef.count);
-    SetMolBoxVec(mBox);
-    for (uint b = 0; b < BOX_TOTAL; ++b) {
-      PrintRemark(b, step, outF[b]);
-      PrintCryst1(b, outF[b]);
-      PrintAtoms(b, mBox);
-      PrintEnd(outF[b]);
-    }
-    GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
+  GOMC_EVENT_START(1, GomcProfileEvent::PDB_OUTPUT);
+  std::vector<uint> mBox(molRef.count);
+  SetMolBoxVec(mBox);
+  for (uint b = 0; b < BOX_TOTAL; ++b) {
+    PrintRemark(b, step, outF[b]);
+    PrintCryst1(b, outF[b]);
+    PrintAtoms(b, mBox);
+    PrintEnd(outF[b]);
   }
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PDB_OUTPUT);
 }
 
 //NEW_RESTART_CODE
