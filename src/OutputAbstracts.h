@@ -46,7 +46,7 @@ public:
   virtual void Output(const ulong step) final
   {
     /* merged psf only prints on first step */
-    if (!enableOut && !enableRestOut && !forceOutput || (onlyPrintOnFirstStep && step == 0) ) {
+    if ((!enableOut && !enableRestOut && !forceOutput) || (onlyPrintOnFirstStep && step != 0) ) {
       return;
     } else {
       Sample(step);
