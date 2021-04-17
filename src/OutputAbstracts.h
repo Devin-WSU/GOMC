@@ -134,9 +134,8 @@ public:
 #if GOMC_LIB_MPI
   std::string pathToReplicaOutputDirectory;
 #endif
-  ulong stepsPerOut, stepsRestPerOut, stepsTillEquil, totSimSteps;
-  bool enableOut, enableRestOut, firstPrint;
-  bool forceOutput;
+  ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0;
+  bool enableOut = false, enableRestOut = false, firstPrint = false, forceOutput = false;
   //Contains references to various objects.
   OutputVars * var;
 };

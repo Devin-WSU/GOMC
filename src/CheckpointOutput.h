@@ -41,11 +41,9 @@ private:
   PRNG & prngPTRef;
 #endif
 
-  bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
-  ulong stepsPerCheckpoint;
   char gomc_version[5];
 
   void openOutputFile();
