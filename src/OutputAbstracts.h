@@ -45,7 +45,8 @@ public:
 
   virtual void Output(const ulong step) final
   {
-    if (!enableOut && !enableRestOut && !forceOutput) {
+    /* merged psf only prints on first step */
+    if (!enableOut && !enableRestOut && !forceOutput || (onlyPrintOnFirstStep && step == 0) ) {
       return;
     } else {
       Sample(step);
@@ -53,13 +54,13 @@ public:
 
     /* We will output either when the step number is every stepsPerOut
        Or recalculate trajectory is enabled (forceOutput) */
-    if (((step + 1) % stepsPerOut == 0) && enableOut || forceOutput) {
+    if ((enableOut && onlyPrintOnFirstStep && step == 0) || (enableOut && ((step + 1) % stepsPerOut == 0)) || forceOutput) {
       DoOutput(step);
       firstPrint = false;
     }
 
     /* We will output if the step number is every stepsRestPerOut */
-    if (((step + 1) % stepsRestPerOut == 0) && enableRestOut) {
+    if (enableRestOut && ((step + 1) % stepsRestPerOut == 0)) {
       DoOutputRestart(step);
     }
   }
@@ -135,7 +136,7 @@ public:
   std::string pathToReplicaOutputDirectory;
 #endif
   ulong stepsPerOut = 0, stepsRestPerOut = 0, stepsTillEquil = 0, totSimSteps = 0;
-  bool enableOut = false, enableRestOut = false, firstPrint = false, forceOutput = false;
+  bool enableOut = false, enableRestOut = false, firstPrint = false, forceOutput = false, onlyPrintOnFirstStep = false;
   //Contains references to various objects.
   OutputVars * var;
 };

@@ -25,12 +25,6 @@ public:
   PSFOutput(const Molecules& molecules, const System &sys,
             Setup & set);
 
-  //Output PSF file to filename using default remarks
-  void PrintPSF(const std::string& filename) const;
-
-  //Output PSF file to filename, specifying remarks
-  void PrintPSF(const std::string& filename, const std::vector<std::string>& remarks) const;
-
   //PSF does not need to sample on every step, so does nothing.
   virtual void Sample(const ulong step) {}
 

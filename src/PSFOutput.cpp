@@ -44,6 +44,7 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
     molKinds[i] = set.mol.kindMap[set.mol.molVars.moleculeKindNames[i]];
   }
   outFName = set.config.out.state.files.psf.name;
+  onlyPrintOnFirstStep = true;
 }
 
 
@@ -53,16 +54,10 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
   enableOut = output.state.settings.enable;
+  
   enableRestOut = output.restart.settings.enable;
   stepsRestPerOut = output.restart.settings.frequency;
   
-  if (enableOut){
-    CountMolecules();
-    PrintPSF(outFName);
-    std::cout << "Printed combined psf to file "
-              << outFName << '\n';
-  }
-
   if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       //Get alias string, based on box #.
@@ -106,7 +101,35 @@ void PSFOutput::DoOutputRestart(const ulong step)
 }
 
 /* Output (merged_psf) occurs in Constructor only */
-void PSFOutput::DoOutput(const ulong step){}
+void PSFOutput::DoOutput(const ulong step){
+  GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
+
+  CountMolecules();
+
+  std::vector<std::string> remarks;
+  //default file remarks
+  remarks.push_back("Combined PSF produced by GOMC");
+  remarks.push_back("Contains Geometry data for molecules in ALL boxes in the system");
+  FILE* outfile = fopen(outFName.c_str(), "w");
+  if (outfile == NULL) {
+    fprintf(stderr, "Error opening PSF output file %s", outFName.c_str());
+    return;
+  }
+
+  fprintf(outfile, "PSF\n\n");
+  PrintRemarks(outfile, remarks);
+  PrintAtoms(outfile);
+  PrintBonds(outfile);
+  PrintAngles(outfile);
+  PrintDihedrals(outfile);
+  PrintNAMDCompliantSuffix(outfile);
+  fclose(outfile);
+
+  std::cout << "Printed combined psf to file "
+            << outFName << '\n';
+
+  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
+}
 
 void PSFOutput::CountMolecules()
 {
@@ -155,36 +178,6 @@ void PSFOutput::CountMoleculesInBoxes()
       atomT += molLookRef.NumKindInBox(k, b);
     }
   }
-}
-
-void PSFOutput::PrintPSF(const std::string& filename) const
-{
-  GOMC_EVENT_START(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
-  std::vector<std::string> remarks;
-  //default file remarks
-  remarks.push_back("Combined PSF produced by GOMC");
-  remarks.push_back("Contains Geometry data for molecules in ALL boxes in the system");
-  PrintPSF(filename, remarks);
-  GOMC_EVENT_STOP(1, GomcProfileEvent::PSF_MERGED_OUTPUT);
-}
-
-void PSFOutput::PrintPSF(const std::string& filename,
-                         const std::vector<std::string>& remarks) const
-{
-  FILE* outfile = fopen(filename.c_str(), "w");
-  if (outfile == NULL) {
-    fprintf(stderr, "Error opening PSF output file %s", filename.c_str());
-    return;
-  }
-
-  fprintf(outfile, "PSF\n\n");
-  PrintRemarks(outfile, remarks);
-  PrintAtoms(outfile);
-  PrintBonds(outfile);
-  PrintAngles(outfile);
-  PrintDihedrals(outfile);
-  PrintNAMDCompliantSuffix(outfile);
-  fclose(outfile);
 }
 
 void PSFOutput::PrintRemarks(FILE* outfile, const std::vector<std::string>& remarks) const
