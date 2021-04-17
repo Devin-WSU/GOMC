@@ -23,7 +23,6 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
   x = NULL;
   y = NULL;
   z = NULL;
-  enableStateOut = enableRestartOut = false;
   for(uint b = 0; b < BOX_TOTAL; ++b){
     stateFileFileid[b] = 0;
     restartCoor[b] = NULL;
@@ -38,15 +37,12 @@ DCDOutput::DCDOutput(System& sys, StaticVals const& statV) :
 void DCDOutput::Init(pdb_setup::Atoms const& atoms,
                      config_setup::Output const& output)
 {
-  enableStateOut = output.state_dcd.settings.enable;
-  enableRestartOut = output.restart.settings.enable;
-  enableOut = enableStateOut | enableRestartOut;
-  stepsStatePerOut = output.state_dcd.settings.frequency;
-  stepsRestartPerOut = output.restart.settings.frequency;
-  if (stepsStatePerOut < stepsRestartPerOut) {
-    stepsPerOut = stepsStatePerOut;
-  } else {
-    stepsPerOut = stepsRestartPerOut;
+  enableOut = output.state_dcd.settings.enable;
+  enableRestOut = output.restart.settings.enable;
+  stepsPerOut = output.state_dcd.settings.frequency;
+  stepsRestPerOut = output.restart.settings.frequency;
+  if (stepsPerOut >= stepsRestPerOut) {
+    stepsPerOut = stepsRestPerOut;
   }
   bool printNotify;
 #ifndef NDEBUG
@@ -56,7 +52,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 
   // Output dcd coordinates and xst file
-  if (enableStateOut) {
+  if (enableOut) {
     int numAtoms = coordCurrRef.Count();
     x = new float [3 * numAtoms];
     y = x + numAtoms;
@@ -81,7 +77,7 @@ void DCDOutput::Init(pdb_setup::Atoms const& atoms,
   }
 
   // Output restart binary coordinates and xsc file
-  if (enableRestartOut) {
+  if (enableRestOut) {
     for (uint b = 0; b < BOX_TOTAL; ++b) {
       std::string fileName = output.restart_dcd.files.dcd.name[b];
       restartCoor[b] = new XYZ[NumAtomInBox(b)];
@@ -161,7 +157,7 @@ void DCDOutput::WriteDCDHeader(const int numAtoms, const int box)
     NAMD_err(err_msg);
   }
   int NSAVC, NFILE, NPRIV, NSTEP;
-  NSAVC = stepsStatePerOut;
+  NSAVC = stepsPerOut;
   NPRIV = 0;
   NSTEP = NPRIV - NSAVC;
   NFILE = 0;
