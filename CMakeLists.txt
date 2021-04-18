@@ -74,6 +74,12 @@ if (CMAKE_CUDA_COMPILER)
     include(${PROJECT_SOURCE_DIR}/CMake/GOMCCUDASetup.cmake)
 endif()
 
+# find Boost, and if not found download and install serialization library for checkpointing
+set(BOOST_REQUESTED_VERSION 1.61)
+# Set Source and Header files
+#include(${PROJECT_SOURCE_DIR}/CMake/FindBoost.cmake)
+find_package(Boost COMPONENTS serialization)
+
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
 
@@ -84,6 +90,4 @@ if (OPENMP_FOUND)
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-# find Boost, and if not found download and install serial library for checkpointing
-set(BOOST_REQUESTED_VERSION 1.61)
-find_package(Boost COMPONENTS serial)
+

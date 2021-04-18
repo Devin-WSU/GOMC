@@ -71,6 +71,7 @@ endforeach()
 # and assigns it to Boost_FIND_COMPONENTS
 list(GET Boost_FIND_COMPONENTS 0 BOOST_FIRST_COMPONENT)
 set(BOOST_FIRST_COMPONENT "boost_${BOOST_FIRST_COMPONENT}")
+message(STATUS "foo include dir: ${BOOST_FIRST_COMPONENT} ")
 
 include(FindPackageHandleStandardArgs)
 
