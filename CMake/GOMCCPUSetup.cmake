@@ -31,6 +31,8 @@ if(ENSEMBLE_NVT)
    if(MPI_FOUND)
       target_link_libraries(NVT ${MPI_LIBRARIES})
    endif()
+   # Alternatively you could use ${Boost_LIBRARIES} here.
+   target_link_libraries( NVT ${Boost_SERIAL_LIBRARY} )
 endif()
 
 if(ENSEMBLE_GEMC)

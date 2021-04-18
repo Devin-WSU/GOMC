@@ -81,6 +81,17 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   if(enableParallelTempering)
     printRandomNumbersParallelTempering();
 #endif
+
+   // create and open a character archive for output
+  std::ofstream ofs("boost");
+  
+  // save data to archive
+  {
+    boost::archive::text_oarchive oa(ofs);
+    // write class instance to archive
+    oa << molRef.kinds[0];
+  // archive and stream closed when destructors are called
+  }
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }

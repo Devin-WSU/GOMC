@@ -110,6 +110,7 @@ public:
   double* pairVirCorrections;
 
   bool printFlag;
+
 };
 
 
