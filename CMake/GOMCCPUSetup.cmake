@@ -18,9 +18,9 @@ set(NVT_name "GOMC_CPU_NVT")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED true)
-message(STATUS "foo include dir: ${Boost_SERIALIZATION_LIBRARY}")
+
 if(ENSEMBLE_NVT)
-   add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources})
+   add_executable(NVT ${sources} ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
    set_target_properties(NVT PROPERTIES 
       OUTPUT_NAME ${NVT_name}
       COMPILE_FLAGS "${NVT_flags}")
@@ -32,7 +32,7 @@ if(ENSEMBLE_NVT)
       target_link_libraries(NVT ${MPI_LIBRARIES})
    endif()
    # Alternatively you could use ${Boost_LIBRARIES} here.
-   target_link_libraries( NVT ${Boost_SERIALIZATION_LIBRARY} )
+   target_link_libraries( NVT ${BOOST_LIBRARIES} )
 endif()
 
 if(ENSEMBLE_GEMC)

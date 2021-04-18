@@ -71,9 +71,8 @@ endforeach()
 # and assigns it to Boost_FIND_COMPONENTS
 list(GET Boost_FIND_COMPONENTS 0 BOOST_FIRST_COMPONENT)
 set(BOOST_FIRST_COMPONENT "boost_${BOOST_FIRST_COMPONENT}")
-message(STATUS "foo include dir: ${BOOST_FIRST_COMPONENT} ")
 
-include(FindPackageHandleStandardArgs)
+#include(FindPackageHandleStandardArgs)
 
 macro(DO_FIND_BOOST_SYSTEM)
 	find_path(BOOST_INCLUDE_DIR boost/config.hpp
@@ -93,10 +92,11 @@ endmacro()
 
 macro(DO_FIND_BOOST_ROOT)
 	if(NOT BOOST_ROOT_DIR)
-		message(STATUS "BOOST_ROOT_DIR is not defined, using binary directory.")
-		set(BOOST_ROOT_DIR ${CURRENT_CMAKE_BINARY_DIR} CACHE PATH "")
+		message(STATUS "BOOST_ROOT_DIR is not defined, using lib/boost directory.")
+		set(BOOST_ROOT_DIR "${PROJECT_SOURCE_DIR}/lib/boost")
 	endif()
 
+	set(BOOST_ROOT_DIR "${PROJECT_SOURCE_DIR}/lib/boost")
 	find_path(BOOST_INCLUDE_DIR boost/config.hpp ${BOOST_ROOT_DIR}/include)
 	find_library(BOOST_LIBRARY ${BOOST_FIRST_COMPONENT} HINTS ${BOOST_ROOT_DIR}/lib)
 	FIND_PACKAGE_HANDLE_STANDARD_ARGS(Boost DEFAULT_MSG
@@ -108,8 +108,10 @@ macro(DO_FIND_BOOST_ROOT)
 endmacro()
 
 macro(DO_FIND_BOOST_DOWNLOAD)
+
 	if(NOT BOOST_REQUESTED_VERSION)
-		message(FATAL_ERROR "BOOST_REQUESTED_VERSION is not defined.")
+		set(BOOST_REQUESTED_VERSION 1.76.0)
+		message(STATUS "BOOST_REQUESTED_VERSION is not defined. Using 1.76.0")
 	endif()
 
 	string(REPLACE "." "_" BOOST_REQUESTED_VERSION_UNDERSCORE ${BOOST_REQUESTED_VERSION})
@@ -120,19 +122,25 @@ macro(DO_FIND_BOOST_DOWNLOAD)
 	endif()
 
 	include(ExternalProject)
-	ExternalProject_Add(
-		Boost
-		URL https://downloads.sourceforge.net/project/boost/boost/${BOOST_REQUESTED_VERSION}/boost_${BOOST_REQUESTED_VERSION_UNDERSCORE}.zip
-		UPDATE_COMMAND ""
-		CONFIGURE_COMMAND ./bootstrap.sh --prefix=${BOOST_ROOT_DIR}
-		BUILD_COMMAND ./b2 ${BOOST_MAYBE_STATIC} --prefix=${BOOST_ROOT_DIR} ${BOOST_COMPONENTS_FOR_BUILD} install
-		BUILD_IN_SOURCE true
-		INSTALL_COMMAND ""
-		INSTALL_DIR ${BOOST_ROOT_DIR}
-		)
+	# Download and unpack googletest at configure time
+	configure_file(${PROJECT_SOURCE_DIR}/CMake/boost/CMakeLists.txt.in ${BOOST_ROOT_DIR}/boost-download/CMakeLists.txt)
+	execute_process(COMMAND ${CMAKE_COMMAND} -G "${CMAKE_GENERATOR}" .
+		RESULT_VARIABLE result
+		WORKING_DIRECTORY ${BOOST_ROOT_DIR}/boost-download )
+	if(result)
+		message(FATAL_ERROR "CMake step for boost failed: ${result}")
+	endif()
+	execute_process(COMMAND ${CMAKE_COMMAND} --build .
+		RESULT_VARIABLE result
+		WORKING_DIRECTORY ${BOOST_ROOT_DIR}/boost-download )
+	if(result)
+		message(FATAL_ERROR "Build step for boost failed: ${result}")
+	endif()
 
-	ExternalProject_Get_Property(Boost install_dir)
-	set(BOOST_INCLUDE_DIRS ${install_dir}/include)
+	#ExternalProject_Get_Property(Boost install_dir)
+	set(BOOST_INCLUDE_DIRS ${BOOST_ROOT_DIR}/include)
+	include_directories(${BOOST_INCLUDE_DIRS})
+
 
 	macro(libraries_to_fullpath varname)
 		set(${varname})
@@ -146,6 +154,8 @@ macro(DO_FIND_BOOST_DOWNLOAD)
 		BOOST_INCLUDE_DIRS BOOST_LIBRARIES
 		)
 	mark_as_advanced(BOOST_LIBRARIES BOOST_INCLUDE_DIRS)
+	message(STATUS "Finished Downloading Boost")
+
 endmacro()
 
 if(NOT BOOST_FOUND)
@@ -157,5 +167,7 @@ if(NOT BOOST_FOUND)
 endif()
 
 if(NOT BOOST_FOUND)
+	message(STATUS "Downloading Boost")
 	DO_FIND_BOOST_DOWNLOAD()
 endif()
+

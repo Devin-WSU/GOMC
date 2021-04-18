@@ -75,10 +75,12 @@ if (CMAKE_CUDA_COMPILER)
 endif()
 
 # find Boost, and if not found download and install serialization library for checkpointing
-set(BOOST_REQUESTED_VERSION 1.61)
 # Set Source and Header files
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake/FindBoost.cmake")
-find_package(Boost COMPONENTS serialization)
+#set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/FindBoost.cmake")
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
+find_package(Boost REQUIRED COMPONENTS serialization )
+include_directories(${BOOST_INCLUDE_DIRS})
 
 # Setup Serial version
 include(${PROJECT_SOURCE_DIR}/CMake/GOMCCPUSetup.cmake)
