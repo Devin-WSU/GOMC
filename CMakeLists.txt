@@ -79,7 +79,7 @@ endif()
 #set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/FindBoost.cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 message(STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}")
-find_package(Boost REQUIRED COMPONENTS serialization )
+find_package(Boost COMPONENTS serialization )
 include_directories(${BOOST_INCLUDE_DIRS})
 
 # Setup Serial version
