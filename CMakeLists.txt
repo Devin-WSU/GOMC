@@ -77,7 +77,7 @@ endif()
 # find Boost, and if not found download and install serialization library for checkpointing
 set(BOOST_REQUESTED_VERSION 1.61)
 # Set Source and Header files
-#include(${PROJECT_SOURCE_DIR}/CMake/FindBoost.cmake)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/CMake/FindBoost.cmake")
 find_package(Boost COMPONENTS serialization)
 
 # Setup Serial version
