@@ -13,6 +13,8 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <vector>
 
+#include <boost/serialization/array.hpp>
+
 namespace mol_setup
 {
 class Atom;
@@ -37,6 +39,25 @@ struct Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
   Nonbond();
   ~Nonbond();
+
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & count;
+      if (Archive::is_loading::value)
+      {
+          assert(part1 == nullptr);
+          part1 = new uint[count];
+          assert(part2 == nullptr);
+          part2 = new uint[count];
+      }
+      ar & boost::serialization::make_array<uint>(part1, count);  
+      ar & boost::serialization::make_array<uint>(part2, count);  
+  }
 };
 
 // for 1-4  interaction
@@ -69,6 +90,29 @@ struct BondList {
 
   BondList();
   ~BondList();
+
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & count;
+      if (Archive::is_loading::value)
+      {
+          assert(part1 == nullptr);
+          part1 = new uint[count];
+          assert(part2 == nullptr);
+          part2 = new uint[count];
+          assert(kinds == nullptr);
+          kinds = new uint[count];
+      }
+      ar & boost::serialization::make_array<uint>(part1, count);  
+      ar & boost::serialization::make_array<uint>(part2, count);  
+      ar & boost::serialization::make_array<uint>(kinds, count);  
+  }
+
 };
 
 //!List describing a geometry feature of a molecule by the bonds it contains.
@@ -120,6 +164,28 @@ private:
   uint* kinds;
   //number of features. If count == 0, do not attempt to deref the arrays
   uint count;
+  uint bondIndicesCount;
+
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & bondsPer;
+    ar & count;
+    ar & bondIndicesCount;
+    if (Archive::is_loading::value)
+    {
+        assert(bondIndices == nullptr);
+        bondIndices = new uint[bondIndicesCount];
+        assert(kinds == nullptr);
+        kinds = new uint[count];
+    }
+    ar & boost::serialization::make_array<uint>(bondIndices, bondIndicesCount);  
+    ar & boost::serialization::make_array<uint>(kinds, count);  
+  }
 };
 
 
@@ -156,6 +222,24 @@ public:
 private:
   uint* partners;
   SubdividedArray subdiv;
+  uint partnersSize;
+  
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & partnersSize;
+      ar & subdiv;
+      if (Archive::is_loading::value)
+      {
+          assert(partners == nullptr);
+          partners = new uint[partnersSize];
+      }
+      ar & boost::serialization::make_array<uint>(partners, partnersSize);  
+  }
 };
 
 

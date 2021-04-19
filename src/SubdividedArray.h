@@ -10,6 +10,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <cstddef>
 #include "BasicTypes.h"
 
+/* For checkpointing serialization */
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/array.hpp>
 //Common class used for dihedral, sorted kind array, topology arrays, etc.
 
 class SubdividedArray
@@ -19,7 +24,8 @@ public:
   SubdividedArray(SubdividedArray const& other)
   {
     subdivCount = other.subdivCount;
-    start = new uint[other.subdivCount + 1];
+    startCount = other.subdivCount + 1;
+    start = new uint[startCount];
     for(uint i = 0; i <= subdivCount; ++i)
       start[i] = other.start[i];
   }
@@ -27,7 +33,8 @@ public:
   {
     if (start != NULL) Cleanup();
     subdivCount = subdiv;
-    start = new uint[subdiv + 1];
+    startCount = subdiv + 1;
+    start = new uint[startCount];
   }
   void Set(const uint div, const uint first, const uint len)
   {
@@ -68,6 +75,7 @@ public:
   SubdividedArray& operator=(SubdividedArray other)
   {
     subdivCount = other.subdivCount;
+    startCount = other.startCount;
     unsigned int* tmp = other.start;
     other.start = start;
     start = tmp;
@@ -77,7 +85,25 @@ public:
 private:
   //note start is one longer than subdivCount to account for length of last
   //actual element
-  uint *start, subdivCount;
+  uint * start;
+  uint startCount, subdivCount;
+
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & startCount;
+      ar & subdivCount;
+      if (Archive::is_loading::value)
+      {
+          assert(start == nullptr);
+          start = new uint[startCount];
+      }
+      ar & boost::serialization::make_array<uint>(start, startCount);  
+  }
 };
 
 #endif /*SUBDIV_ARRAY*/

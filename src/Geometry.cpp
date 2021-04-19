@@ -251,6 +251,7 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
     return;
   //find corresponding bond indices
   kinds = new uint[count];
+  bondIndicesCount = count * bondsPer;
   bondIndices = new uint[count * bondsPer];
 
   int bondCounter = 0;
@@ -273,6 +274,7 @@ void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondL
   //find corresponding bond indices
   kinds = new uint[count];
   bondIndices = new uint[count * bondsPer];
+  bondIndicesCount = count * bondsPer;
 
   int bondCounter = 0;
   for (uint i = 0; i < dihs.size(); ++i) {

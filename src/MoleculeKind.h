@@ -22,7 +22,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 // include headers that implement a archive in simple text format
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
-
+#include <boost/serialization/vector.hpp>
 namespace mol_setup
 {
 class Atom;
@@ -178,6 +178,11 @@ public:
 #endif
 
 private:
+  cbmc::CBMC* builder;
+
+  uint numAtoms;
+  uint * atomKind;
+  double * atomCharge;
 
   void InitAtoms(mol_setup::MolKind const& molData);
 
@@ -193,17 +198,39 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
-      ar & numAtoms;
-      ar & molMass;
-      ar & name;
+    ar & numAtoms;
+    ar & molMass;
+    ar & name;
+    ar & sortedNB;
+    ar & sortedNB_1_4; 
+    ar & sortedNB_1_3; 
+    ar & sortedEwaldNB;
+    ar & nonBonded;
+    ar & nonBonded_1_4;
+    ar & nonBonded_1_3;
+    ar & nonEwaldBonded;
+    ar & bondList;
+    ar & angles;
+    ar & dihedrals;
+    ar & oneThree;
+    ar & oneFour;
+    ar & name;
+    ar & atomNames;
+    ar & atomTypeNames;
+    ar & resNames;
+    if (Archive::is_loading::value)
+    {
+        assert(atomMass == nullptr);
+        atomMass = new double[numAtoms];
+        assert(atomKind == nullptr);
+        atomKind = new uint[numAtoms];
+        assert(atomCharge == nullptr);
+        atomCharge = new double[numAtoms];        
+    }
+    ar & boost::serialization::make_array<double>(atomMass, numAtoms);  
+    ar & boost::serialization::make_array<uint>(atomKind, numAtoms);  
+    ar & boost::serialization::make_array<double>(atomCharge, numAtoms);  
   }
-
-
-  cbmc::CBMC* builder;
-
-  uint numAtoms;
-  uint * atomKind;
-  double * atomCharge;
 };
 
 
