@@ -23,6 +23,10 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+
+BOOST_CLASS_VERSION(MoleculeKind, 1);
+
+
 namespace mol_setup
 {
 class Atom;
@@ -176,9 +180,10 @@ public:
 #if ENSEMBLE == GCMC
   double chemPot;
 #endif
+  cbmc::CBMC* builder;
 
 private:
-  cbmc::CBMC* builder;
+/* Boost supports serializing polymorphic pointers without any special handling by the user */
 
   uint numAtoms;
   uint * atomKind;
@@ -198,6 +203,7 @@ private:
   template<class Archive>
   void serialize(Archive & ar, const unsigned int version)
   {
+
     ar & numAtoms;
     ar & molMass;
     ar & name;
@@ -212,6 +218,7 @@ private:
     ar & bondList;
     ar & angles;
     ar & dihedrals;
+
     ar & oneThree;
     ar & oneFour;
     ar & name;
@@ -230,8 +237,11 @@ private:
     ar & boost::serialization::make_array<double>(atomMass, numAtoms);  
     ar & boost::serialization::make_array<uint>(atomKind, numAtoms);  
     ar & boost::serialization::make_array<double>(atomCharge, numAtoms);  
+    
+    
   }
 };
+
 
 
 

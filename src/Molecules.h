@@ -104,6 +104,10 @@ public:
   char* chain;
 
   MoleculeKind * kinds;
+
+  cbmc::CBMC** builder;
+
+
   uint kindsCount;
   uint fractionKind, lambdaSize;
   double* pairEnCorrections;

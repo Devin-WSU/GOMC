@@ -82,17 +82,36 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
     printRandomNumbersParallelTempering();
 #endif
 
+
    // create and open a character archive for output
-  std::ofstream ofs("boost");
+  std::ofstream ofs("boost", std::ios_base::trunc);
   
   // save data to archive
   {
     boost::archive::text_oarchive oa(ofs);
     // write class instance to archive
     oa << molRef.kinds[0];
+    // close archive
+    ofs.close();
+
+    std::ifstream ifs("boost");
+    if (ifs.good()) {
+        boost::archive::text_iarchive ia(ifs);
+        MoleculeKind * test = new MoleculeKind();
+        ia >> *test;
+        test->builder = molRef.kinds[0].builder;
+        molRef.kinds[0] = *test;
+        // close archive
+        ifs.close();  
+    } else {
+        // throw an error or something
+        assert(false);
+    }
+
   // archive and stream closed when destructors are called
   }
   std::cout << "Checkpoint saved to " << filename << std::endl;
+  //exit(1);
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 

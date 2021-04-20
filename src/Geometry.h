@@ -63,18 +63,80 @@ struct Nonbond {
 // for 1-4  interaction
 struct Nonbond_1_4 : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & boost::serialization::base_object<Nonbond>(*this);
+      /*
+      ar & count;
+      if (Archive::is_loading::value)
+      {
+          assert(part1 == nullptr);
+          part1 = new uint[count];
+          assert(part2 == nullptr);
+          part2 = new uint[count];
+      }
+      ar & boost::serialization::make_array<uint>(part1, count);  
+      ar & boost::serialization::make_array<uint>(part2, count);  
+      */
+  }
 };
 
 // for 1-3  interaction, used for Martini ForceField
 struct Nonbond_1_3 : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & boost::serialization::base_object<Nonbond>(*this);
+      /*
+      ar & count;
+      if (Archive::is_loading::value)
+      {
+          assert(part1 == nullptr);
+          part1 = new uint[count];
+          assert(part2 == nullptr);
+          part2 = new uint[count];
+      }
+      ar & boost::serialization::make_array<uint>(part1, count);  
+      ar & boost::serialization::make_array<uint>(part2, count);  
+      */
+  }
 };
 
 // for ewald correction energy calculation
 struct EwaldNonbond : public Nonbond {
   virtual void Init(const mol_setup::MolKind& molData);
-
-
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+      ar & boost::serialization::base_object<Nonbond>(*this);
+      /*
+      ar & count;
+      if (Archive::is_loading::value)
+      {
+          assert(part1 == nullptr);
+          part1 = new uint[count];
+          assert(part2 == nullptr);
+          part2 = new uint[count];
+      }
+      ar & boost::serialization::make_array<uint>(part1, count);  
+      ar & boost::serialization::make_array<uint>(part2, count);
+      */  
+  }
 };
 
 
