@@ -313,4 +313,5 @@ void SortedNonbond::Init(const Nonbond& nb, const uint numAtoms)
   }
   partners = new uint[partnerVec.size()];
   std::copy(partnerVec.begin(), partnerVec.end(), partners);
+  partnersSize = partnerVec.size();
 }

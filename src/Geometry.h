@@ -59,6 +59,7 @@ struct Nonbond {
       ar & boost::serialization::make_array<uint>(part2, count);  
   }
 };
+BOOST_CLASS_VERSION(Nonbond, 1);
 
 // for 1-4  interaction
 struct Nonbond_1_4 : public Nonbond {
@@ -85,6 +86,7 @@ struct Nonbond_1_4 : public Nonbond {
       */
   }
 };
+BOOST_CLASS_VERSION(Nonbond_1_4, 1);
 
 // for 1-3  interaction, used for Martini ForceField
 struct Nonbond_1_3 : public Nonbond {
@@ -111,6 +113,8 @@ struct Nonbond_1_3 : public Nonbond {
       */
   }
 };
+BOOST_CLASS_VERSION(Nonbond_1_3, 1);
+
 
 // for ewald correction energy calculation
 struct EwaldNonbond : public Nonbond {
@@ -138,6 +142,7 @@ struct EwaldNonbond : public Nonbond {
       */  
   }
 };
+BOOST_CLASS_VERSION(EwaldNonbond, 1);
 
 
 //!List of all pairs of particles in bonds.
@@ -176,6 +181,8 @@ struct BondList {
   }
 
 };
+BOOST_CLASS_VERSION(BondList, 1);
+
 
 //!List describing a geometry feature of a molecule by the bonds it contains.
 /*!Contains bond indices as used in bondlist, bonds greater than bondList.count
@@ -249,7 +256,7 @@ private:
     ar & boost::serialization::make_array<uint>(kinds, count);  
   }
 };
-
+BOOST_CLASS_VERSION(GeomFeature, 1);
 
 
 //List of all pairs that interact via nonbonded LJ potentials, i.e. all pairs
@@ -303,6 +310,7 @@ private:
       ar & boost::serialization::make_array<uint>(partners, partnersSize);  
   }
 };
+BOOST_CLASS_VERSION(SortedNonbond, 1)
 
 
 #endif
