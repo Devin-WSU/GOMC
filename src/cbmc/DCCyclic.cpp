@@ -80,7 +80,8 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       atomToNode[atom] = -1;
     } else {
       //Get the information of other Atoms that are bonded to the atom
-      std::vector<uint> bonds = kind.bondList.GetBondIndices(atom);
+      std::vector<uint> bonds;
+      kind.bondList.GetBondIndices(bonds, atom);
       atomToNode[atom] = nodes.size();
       //Add atom to the node list and initialize it with DCFreeHedron, atom and
       // the first partner of the atom
@@ -178,9 +179,11 @@ void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle;
+    kind.angles.GetAtomMidEndAngles(angle, a0, a1);
     //Find all the angle that forms a1-a2-x
-    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    std::vector<Angle> tempAng;
+    kind.angles.GetAtomMidEndAngles(tempAng, a2, a1);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.
@@ -217,12 +220,13 @@ void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
     //If this atom is in the ring
     if(isRing[atom]) {
       //Find all the angle that forms x-atom-x
-      std::vector<Angle> angle = AtomMidAngles(kind, atom);
+      std::vector<uint> angle;
+      kind.angles.GetMidAnglesIndices(angle, atom);
       for(uint a = 0; a < angle.size(); a++) {
         //find the atomindex in the angle
-        uint a0 = angle[a].a0;
-        uint a1 = angle[a].a1;
-        uint a2 = angle[a].a2;
+        uint a0 = kind.angles.GetBond(angle[a], 0);
+        uint a1 = kind.angles.GetBond(angle[a], 1);
+        uint a2 = kind.angles.GetBond(angle[a], 2);
         //If number of bonds are less than 3, there is no atom attached
         if(bondCount[a1] < 3) {
           continue;
@@ -232,9 +236,10 @@ void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
           bool fixAngle = false;
           bool sameRing = false;
           //Find the atoms that are bonded to a1
-          std::vector<Bond> bonds = AtomBonds(kind, a1);
+          std::vector<uint> bonds;
+          kind.bondList.GetBondIndices(bonds, a1);
           for(uint b = 0; b < bonds.size(); b++) {
-            uint partner = bonds[b].a1;
+            uint partner = kind.bondList.part2[bonds[b]];
             if((partner == a0) || (partner == a2)) {
               continue;
             }
@@ -242,7 +247,8 @@ void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
               sameRing |= (ringIdx[a1] == ringIdx[partner]);
             }
             //Find all the angle that forms partner-a1-x (x is either a0 or a2)
-            std::vector<Angle> ang = AtomMidEndAngles(kind, a1, partner);
+            std::vector<Angle> ang;
+            kind.angles.GetAtomMidEndAngles(ang, a1, partner);
             //Check to see if any of these angles are fixed or not.
             for(uint i = 0; i < ang.size(); i++) {
               fixAngle |= data.ff.angles->AngleFixed(ang[i].kind);

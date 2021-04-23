@@ -154,7 +154,7 @@ struct BondList {
 
   void Init(const std::vector<mol_setup::Bond>& bonds);
   bool IsBonded(const uint &i, const uint &j);
-  std::vector<uint> GetBondIndices(uint atom) const;
+  void GetBondIndices(std::vector<uint> & bIndices, uint atom) const;
 
   BondList();
   ~BondList();
@@ -201,9 +201,12 @@ public:
   explicit GeomFeature(uint atomsPer);
   ~GeomFeature();
 
-  std::vector<uint> GetMidAnglesIndices(uint focus) const;
+  void GetMidAnglesIndices(std::vector<uint> & angleIndices, uint atom) const;
+  /* Haven't figured out how to do this yet.  I may need to reverse the angles outside the method 
   std::vector<uint> GetMidEndAnglesIndices(uint focus) const;
-  std::vector<mol_setup::Dihedral> GetDihsOnBond(uint atom, uint partner) const;
+  */
+  void GetAtomMidEndAngles(std::vector<mol_setup::Angle> & angles, uint mid, uint atom) const;
+  void GetDihsOnBond(std::vector<mol_setup::Dihedral> & dihedrals, uint atom, uint partner) const;
 
 
   //Return number of features in molecule

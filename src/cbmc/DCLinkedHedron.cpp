@@ -45,7 +45,8 @@ DCLinkedHedron::DCLinkedHedron
   : data(data), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
+  std::vector<uint> onFocus;
+  kind.bondList.GetBondIndices(onFocus, hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
@@ -53,7 +54,8 @@ DCLinkedHedron::DCLinkedHedron
     bondKinds[i] = kind.bondList.kinds[onFocus[i]];;
   }
 
-  std::vector<uint> onPrev = kind.bondList.GetBondIndices(hed.Prev());
+  std::vector<uint> onPrev;
+  kind.bondList.GetBondIndices(onPrev, hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
                onPrev.end());
   nPrevBonds = onPrev.size();
@@ -61,7 +63,8 @@ DCLinkedHedron::DCLinkedHedron
   for(uint i = 0; i < nPrevBonds; ++i) {
     prevBonded[i] = kind.bondList.part2[onPrev[i]];
   }
-  std::vector<Dihedral> dihs = kind.dihedrals.GetDihsOnBond(hed.Focus(), hed.Prev());
+  std::vector<Dihedral> dihs;
+  kind.dihedrals.GetDihsOnBond(dihs, hed.Focus(), hed.Prev());
   for(uint i = 0; i < hed.NumBond(); ++i) {
     for(uint j = 0; j < nPrevBonds; ++j) {
       std::vector<Dihedral>::const_iterator match =

@@ -32,7 +32,8 @@ DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const MoleculeKind& kind,
 {
   using namespace mol_setup;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
+  std::vector<uint> onFocus;
+  kind.bondList.GetBondIndices(onFocus, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (kind.bondList.part2[onFocus[i]] == prev) {
       anchorKind = kind.bondList.kinds[onFocus[i]];

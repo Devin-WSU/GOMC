@@ -47,16 +47,19 @@ DCLinkedCycle::DCLinkedCycle
 {
   using namespace mol_setup;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
+  std::vector<uint> onFocus;
+  kind.bondList.GetBondIndices(onFocus, hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
   focBondedRing = -1;
+  std::vector<mol_setup::Dihedral> dihedralTemp;
   for (uint i = 0; i < hed.NumBond(); ++i) {
     bondKinds[i] = kind.bondList.kinds[onFocus[i]];
     //store the dihedral that boded[i] and focus are in the middle
-    bondedFocusDih.push_back(kind.dihedrals.GetDihsOnBond(kind.bondList.part2[onFocus[i]], focus));
-
+    kind.dihedrals.GetDihsOnBond(dihedralTemp, kind.bondList.part2[onFocus[i]], focus);
+    bondedFocusDih.push_back(dihedralTemp);
+    dihedralTemp.clear();
     if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onFocus[i]]) != cycAtoms.end()) {
       focBondedRing = i;
       bondedInRing[i] = true;
@@ -64,7 +67,8 @@ DCLinkedCycle::DCLinkedCycle
   }
   assert(focBondedRing != -1);
 
-  std::vector<uint> onPrev = kind.bondList.GetBondIndices(hed.Prev());
+  std::vector<uint> onPrev;
+  kind.bondList.GetBondIndices(onPrev, hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
                onPrev.end());
   nPrevBonds = onPrev.size();
@@ -76,7 +80,8 @@ DCLinkedCycle::DCLinkedCycle
     }
   }
 
-  std::vector<Dihedral> dihs = kind.dihedrals.GetDihsOnBond(hed.Focus(), hed.Prev());
+  std::vector<Dihedral> dihs;
+  kind.dihedrals.GetDihsOnBond(dihs, hed.Focus(), hed.Prev());
   for(uint i = 0; i < hed.NumBond(); ++i) {
     for(uint j = 0; j < nPrevBonds; ++j) {
       std::vector<Dihedral>::const_iterator match =

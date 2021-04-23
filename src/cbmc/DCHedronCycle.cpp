@@ -64,7 +64,8 @@ DCHedronCycle::DCHedronCycle(DCData* data, const MoleculeKind& kind,
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  std::vector<uint> onFocus = kind.bondList.GetBondIndices(focus);
+  std::vector<uint> onFocus;
+  kind.bondList.GetBondIndices(onFocus, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();

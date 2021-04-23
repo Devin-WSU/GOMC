@@ -31,7 +31,8 @@ DCFreeHedron::DCFreeHedron(DCData* data, const MoleculeKind& kind,
   : data(data), seed(data, focus), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
+  std::vector<uint> onFocus;
+  kind.bondList.GetBondIndices(onFocus, hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (kind.bondList.part2[onFocus[i]] == prev) {
       anchorKind = kind.bondList.kinds[onFocus[i]];
