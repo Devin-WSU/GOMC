@@ -30,23 +30,24 @@ struct FindA1 {
 };
 
 struct FindAngle {
-  FindAngle(uint x, uint y) : x(x), y(y) {}
+  FindAngle(uint x, uint y, const GeomFeature & angles_) : x(x), y(y), angles(angles_) {}
   uint x, y;
-  bool operator()(const mol_setup::Angle& a)
+  const GeomFeature & angles;
+  bool operator()(const uint a)
   {
-    return (a.a0 == x && a.a2 == y) || (a.a0 == y && a.a2 == x);
+    return (angles.GetBond(a, 0) == x && angles.GetBond(a, 2) == y) || (angles.GetBond(a, 0) == y && angles.GetBond(a, 2) == x);
   }
 };
 
 //Check to see if angle a is in the ring or not
-bool IsInRing(const std::vector<int> &cycAtoms, const mol_setup::Angle& a)
+bool IsInRing(const std::vector<int> &cycAtoms, const GeomFeature & angles, const uint & a)
 {
   bool res = true;
-  if(std::find(cycAtoms.begin(), cycAtoms.end(), a.a0) == cycAtoms.end()) {
+  if(std::find(cycAtoms.begin(), cycAtoms.end(), angles.GetBond(a, 0)) == cycAtoms.end()) {
     res = false;
-  } else if(std::find(cycAtoms.begin(), cycAtoms.end(), a.a1) == cycAtoms.end()) {
+  } else if(std::find(cycAtoms.begin(), cycAtoms.end(), angles.GetBond(a, 1)) == cycAtoms.end()) {
     res = false;
-  } else if(std::find(cycAtoms.begin(), cycAtoms.end(), a.a2) == cycAtoms.end()) {
+  } else if(std::find(cycAtoms.begin(), cycAtoms.end(), angles.GetBond(a, 2)) == cycAtoms.end()) {
     res = false;
   }
   return res;
@@ -58,24 +59,24 @@ namespace cbmc
 {
 
 
-DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
+DCHedronCycle::DCHedronCycle(DCData* data, const MoleculeKind& kind,
                              const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  std::vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<uint> onFocus = kind.bondList.GetBondIndices(focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
 
   for (uint i = 0; i < nBonds; ++i) {
-    bonded[i] = onFocus[i].a1;
+    bonded[i] = kind.bondList.part2[onFocus[i]];
   }
-
-  std::vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<uint> angles = kind.angles.GetMidAnglesIndices(focus);
+  //std::vector<Angle> angles = AtomMidAngles(kind, focus);
   double sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
-    sumAngle += data->ff.angles->Angle(angles[a].kind);
+    sumAngle += data->ff.angles->Angle(kind.angles.GetKind(angles[a]));
   }
   //If sum of angles (sumAngle +/- 10) ~ 2*pi = 6.283, it means they are in a plane
   //To avoid geometric conflict for flexible angle, we consider it fixed and
@@ -84,19 +85,20 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   bool constrainAngInRing = false;
 
   for (uint i = 0; i < nBonds; ++i) {
-    typedef std::vector<Angle>::const_iterator Aiter;
+    //typedef std::vector<Angle>::const_iterator Aiter;
+    typedef std::vector<uint>::const_iterator Aiter;
     Aiter free = find_if(angles.begin(), angles.end(),
-                         FindAngle(prev, bonded[i]));
+                         FindAngle(prev, bonded[i], kind.angles));
     assert(free != angles.end());
-    angleKinds[i][i] = free->kind;
-    angleInRing[i][i] = IsInRing(cycAtoms, *free);
+    angleKinds[i][i] = kind.angles.GetKind(*free);
+    angleInRing[i][i] = IsInRing(cycAtoms, kind.angles, *free);
 
     for (uint j = i + 1; j < nBonds; ++j) {
       Aiter pair = find_if(angles.begin(), angles.end(),
-                           FindAngle(bonded[i], bonded[j]));
-      angleKinds[i][j] = pair->kind;
-      angleKinds[j][i] = pair->kind;
-      angleInRing[i][j] = IsInRing(cycAtoms, *pair);
+                           FindAngle(bonded[i], bonded[j], kind.angles));
+      angleKinds[i][j] = kind.angles.GetKind(*pair);
+      angleKinds[j][i] = angleKinds[i][j];
+      angleInRing[i][j] = IsInRing(cycAtoms, kind.angles, *pair);
       angleInRing[j][i] = angleInRing[i][j];
       constrainAngInRing |= angleInRing[i][j];
     }

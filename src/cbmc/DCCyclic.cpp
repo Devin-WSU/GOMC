@@ -28,7 +28,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
-  totAtom = setupKind.atoms.size();
+  totAtom = kind.NumAtoms();
 
   if(totAtom < 4) {
     std::cout << "Error: GOMC does not support cyclic molecule with 3 atoms!\n\n";
@@ -47,12 +47,11 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   CircuitFinder CF(totAtom);
 
   //Count the number of bonds for each atom
-  for (uint b = 0; b < setupKind.bonds.size(); ++b) {
-    const Bond& bond = setupKind.bonds[b];
-    ++bondCount[bond.a0];
-    ++bondCount[bond.a1];
-    CF.addEdge(bond.a0, bond.a1);
-    CF.addEdge(bond.a1, bond.a0);
+  for (uint b = 0; b < kind.NumBonds(); ++b) {  
+    ++bondCount[kind.bondList.part1[b]];
+    ++bondCount[kind.bondList.part2[b]];
+    CF.addEdge(kind.bondList.part1[b], kind.bondList.part2[b]);
+    CF.addEdge(kind.bondList.part2[b], kind.bondList.part1[b]);
   }
   cyclicAtoms = CF.GetAllCommonCycles();
   //Find the ringindex that each atom belongs to
@@ -81,7 +80,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       atomToNode[atom] = -1;
     } else {
       //Get the information of other Atoms that are bonded to the atom
-      std::vector<Bond> bonds = AtomBonds(setupKind, atom);
+      std::vector<uint> bonds = kind.bondList.GetBondIndices(atom);
       atomToNode[atom] = nodes.size();
       //Add atom to the node list and initialize it with DCFreeHedron, atom and
       // the first partner of the atom
@@ -93,32 +92,32 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
         int prev = -1;
         for(uint i = 0; i < bonds.size(); i++) {
           //Use one of the atoms that is in the ring as prev
-          if(isRing[bonds[i].a1]) {
-            prev = bonds[i].a1;
+          if(isRing[kind.bondList.part2[bonds[i]]]) {
+            prev = kind.bondList.part2[bonds[i]];
             break;
           }
         }
         assert(prev != -1);
         //Atoms bonded to atom will be build from focus (atom) in random loc.
-        node.starting = new DCFreeCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+        node.starting = new DCFreeCycle(&data, kind, cyclicAtoms[ringIdx[atom]],
                                         atom, prev);
         //Atoms bonded to atom will be build from focus (atom) in specified loc.
-        node.restarting = new DCFreeCycleSeed(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+        node.restarting = new DCFreeCycleSeed(&data, kind, cyclicAtoms[ringIdx[atom]],
                                               atom, prev);
       } else {
         //Atoms bonded to atom will be build from focus (atom) in random loc.
-        node.starting = new DCFreeHedron(&data, setupKind, atom,
-                                         bonds[0].a1);
+        node.starting = new DCFreeHedron(&data, kind, atom,
+                                         kind.bondList.part2[bonds[0]]);
         //Atoms bonded to atom will be build from focus (atom) in specified loc.
-        node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
-                                               bonds[0].a1);
+        node.restarting = new DCFreeHedronSeed(&data, kind, atom,
+                                               kind.bondList.part2[bonds[0]]);
       }
 
       //set the atom index of the node
       node.atomIndex = atom;
       //Loop through all the bonds
       for (uint i = 0; i < bonds.size(); ++i) {
-        uint partner = bonds[i].a1;
+        uint partner = kind.bondList.part2[bonds[i]];
         //Store partner index for each node
         node.partnerIndex.push_back(partner);
         if(bondCount[partner] == 1) {
@@ -129,7 +128,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[partner]],
+          Edge e = Edge(partner, new DCLinkedCycle(&data, kind, cyclicAtoms[ringIdx[partner]],
                         partner, atom));
           node.edges.push_back(e);
 
@@ -137,7 +136,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner, atom));
+          Edge e = Edge(partner, new DCLinkedHedron(&data, kind, partner, atom));
           node.edges.push_back(e);
         }
       }

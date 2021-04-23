@@ -26,17 +26,17 @@ struct FindA1 {
   uint x;
 };
 
-DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
+DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const MoleculeKind& kind,
                                  const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
   for(uint i = 0; i < onFocus.size(); ++i) {
-    if (onFocus[i].a1 == prev) {
-      anchorKind = onFocus[i].kind;
-      if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
+    if (kind.bondList.part2[onFocus[i]] == prev) {
+      anchorKind = kind.bondList.kinds[onFocus[i]];
+      if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onFocus[i]]) != cycAtoms.end()) {
         bondedInRing[hed.NumBond()] = true;
       }
       break;
@@ -47,8 +47,8 @@ DCFreeCycleSeed::DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
   for (uint i = 0; i < onFocus.size(); ++i) {
-    bondKinds[i] = onFocus[i].kind;
-    if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
+    bondKinds[i] = kind.bondList.kinds[onFocus[i]];
+    if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onFocus[i]]) != cycAtoms.end()) {
       bondedInRing[i] = true;
     }
   }

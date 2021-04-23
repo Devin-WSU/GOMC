@@ -154,6 +154,7 @@ struct BondList {
 
   void Init(const std::vector<mol_setup::Bond>& bonds);
   bool IsBonded(const uint &i, const uint &j);
+  std::vector<uint> GetBondIndices(uint atom) const;
 
   BondList();
   ~BondList();
@@ -199,6 +200,10 @@ public:
   void Init(const std::vector<mol_setup::Dihedral>& dihs, const BondList& bList);
   explicit GeomFeature(uint atomsPer);
   ~GeomFeature();
+
+  std::vector<uint> GetMidAnglesIndices(uint focus) const;
+  std::vector<uint> GetDihsOnBondIndices(uint atom, uint partner) const;
+
 
   //Return number of features in molecule
   uint Count() const

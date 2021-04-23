@@ -22,7 +22,7 @@ class DCData;
 class DCLinkedCycle : public DCComponent
 {
 public:
-  DCLinkedCycle(DCData* data, const mol_setup::MolKind& kind,
+  DCLinkedCycle(DCData* data, const MoleculeKind& kind,
                 std::vector<int> cycAtoms, uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);
@@ -66,7 +66,9 @@ private:
   uint bondKinds[MAX_BONDS];
   bool bondedInRing[MAX_BONDS];
 
-  std::vector< std::vector<mol_setup::Dihedral> > bondedFocusDih;
+  //std::vector< std::vector<mol_setup::Dihedral> > bondedFocusDih;
+  std::vector< std::vector<uint> > bondedFocusDih;
+
   std::vector<bool> bExist;
 };
 }

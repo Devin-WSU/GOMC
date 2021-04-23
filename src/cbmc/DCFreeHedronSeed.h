@@ -22,7 +22,7 @@ class DCData;
 class DCFreeHedronSeed : public DCComponent
 {
 public:
-  DCFreeHedronSeed(DCData* data, const mol_setup::MolKind& kind,
+  DCFreeHedronSeed(DCData* data, const MoleculeKind& kind,
                    uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);

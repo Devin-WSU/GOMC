@@ -232,8 +232,13 @@ BondList::~BondList()
   delete[] kinds;
 }
 
-
-
+std::vector<uint> BondList::GetBondIndices(uint atom) const{
+  std::vector<uint> bIndices;
+  for (int i = 0; i < count; ++i)
+    if ((part1[i] == atom )|| (part2[i] == atom))
+      bIndices.push_back(i);
+  return bIndices;
+}
 
 GeomFeature::GeomFeature(uint atomsPer) : bondsPer(atomsPer - 1),
   bondIndices(NULL), kinds(NULL), count(0) {}
@@ -265,6 +270,45 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
     kinds[i] = angles[i].kind;
   }
 }
+
+std::vector<uint> GeomFeature::GetMidAnglesIndices(uint atom) const {
+  std::vector<uint> result;
+  for(int feature = 0; feature < count; ++feature){
+    if (atom == GetBond(feature, 1))
+      result.push_back(GetBond(feature, 1));
+  }
+  return result;
+}
+
+std::vector<uint> GeomFeature::GetDihsOnBondIndices(uint atom, uint partner) const {
+  std::vector<uint> result;
+  for(int feature = 0; feature < count; ++feature){
+    if (GetBond(feature, 1) == atom && GetBond(feature, 2) == partner) {
+      result.push_back(feature);
+    } else if (GetBond(feature, 1) == partner && GetBond(feature, 2) == atom) {
+      result.push_back(feature);
+    }
+  }
+  return result;
+}
+
+/*
+std::vector<Dihedral> mol_setup::DihsOnBond(const MolKind& molKind, uint atom, uint partner)
+{
+  std::vector<Dihedral> result;
+  typedef std::vector<Dihedral>::const_iterator Diter;
+  for (Diter it = molKind.dihedrals.begin(), end = molKind.dihedrals.end(); it < end; ++it) {
+    if (it->a1 == atom && it->a2 == partner) {
+      result.push_back(*it);
+    } else if (it->a2 == atom && it->a1 == partner) {
+      result.push_back(*it);
+      std::swap(result.back().a0, result.back().a3);
+      std::swap(result.back().a1, result.back().a2);
+    }
+  }
+  return result;
+}
+*/
 
 void GeomFeature::Init(const std::vector<mol_setup::Dihedral>& dihs, const BondList& bList)
 {

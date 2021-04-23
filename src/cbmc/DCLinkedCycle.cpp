@@ -41,36 +41,36 @@ struct FindDih {
 namespace cbmc
 {
 DCLinkedCycle::DCLinkedCycle
-(DCData* data, const mol_setup::MolKind& kind, std::vector<int> cycAtoms,
+(DCData* data, const MoleculeKind& kind, std::vector<int> cycAtoms,
  uint focus, uint prev)
   : data(data), hed(data, kind, cycAtoms, focus, prev)
 {
   using namespace mol_setup;
   std::fill_n(bondedInRing, MAX_BONDS, false);
-  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
   focBondedRing = -1;
   for (uint i = 0; i < hed.NumBond(); ++i) {
-    bondKinds[i] = onFocus[i].kind;
+    bondKinds[i] = kind.bondList.kinds[onFocus[i]];
     //store the dihedral that boded[i] and focus are in the middle
-    bondedFocusDih.push_back(DihsOnBond(kind, onFocus[i].a1, focus));
-    if(std::find(cycAtoms.begin(), cycAtoms.end(), onFocus[i].a1) != cycAtoms.end()) {
+    bondedFocusDih.push_back(DihsOnBond(kind, kind.bondList.part2[onFocus[i]], focus));
+    if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onFocus[i]]) != cycAtoms.end()) {
       focBondedRing = i;
       bondedInRing[i] = true;
     }
   }
   assert(focBondedRing != -1);
 
-  std::vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
+  std::vector<uint> onPrev = kind.bondList.GetBondIndices(hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
                onPrev.end());
   nPrevBonds = onPrev.size();
   prevBondedRing = -1;
   for(uint i = 0; i < nPrevBonds; ++i) {
-    prevBonded[i] = onPrev[i].a1;
-    if(std::find(cycAtoms.begin(), cycAtoms.end(), onPrev[i].a1) != cycAtoms.end()) {
+    prevBonded[i] = kind.bondList.part2[onPrev[i]];
+    if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onPrev[i]]) != cycAtoms.end()) {
       prevBondedRing = i;
     }
   }
