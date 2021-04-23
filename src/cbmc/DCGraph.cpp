@@ -25,7 +25,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
 
-  idExchange = new DCRotateCOM(&data, setupKind);
+  idExchange = new DCRotateCOM(&data, kind.NumAtoms());
   //init the coordinate
   coords.Init(setupKind.atoms.size());
 

@@ -21,7 +21,7 @@ class DCData;
 class DCOnSphere : public DCComponent
 {
 public:
-  DCOnSphere(DCData* data, const mol_setup::MolKind kind,
+  DCOnSphere(DCData* data, const MoleculeKind kind,
              uint atom, uint focus);
   void PrepareNew(TrialMol& newMol, uint molIndex) {};
   void PrepareOld(TrialMol& oldMol, uint molIndex) {};

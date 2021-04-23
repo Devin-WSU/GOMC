@@ -27,20 +27,19 @@ Molecule is allowed to have rotation around COM or around Z-axis
 namespace cbmc
 {
 
-DCRotateCOM::DCRotateCOM(DCData* data, const mol_setup::MolKind kind)
+DCRotateCOM::DCRotateCOM(DCData* data, const uint numAtoms)
   : data(data), rotateMatrix(3), invMatrix(3)
 {
   rotateMatrix.Set(0, 0.0, 0.0, 0.0);
   rotateMatrix.Set(1, 0.0, 0.0, 0.0);
   rotateMatrix.Set(2, 0.0, 0.0, 1.0);
-  atomNumber = kind.atoms.size();
-  multiPosRotions = new XYZArray[atomNumber];
+  multiPosRotions = new XYZArray[numAtoms];
 
   if(data->totalTrials < 1) {
     std::cout << "Error: CBMC first or secondary atom trials must be greater than 0.\n";
     exit(EXIT_FAILURE);
   }
-  for(uint i = 0; i < atomNumber; ++i) {
+  for(uint i = 0; i < numAtoms; ++i) {
     multiPosRotions[i] = XYZArray(data->totalTrials);
   }
 }

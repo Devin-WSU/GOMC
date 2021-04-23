@@ -35,7 +35,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     exit(EXIT_FAILURE);
   }
 
-  idExchange = new DCRotateCOM(&data, setupKind);
+  idExchange = new DCRotateCOM(&data, kind.NumAtoms());
 
   //init the coordinate
   coords.Init(totAtom);
