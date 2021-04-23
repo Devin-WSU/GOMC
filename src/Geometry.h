@@ -202,6 +202,7 @@ public:
   ~GeomFeature();
 
   std::vector<uint> GetMidAnglesIndices(uint focus) const;
+  std::vector<uint> GetMidEndAnglesIndices(uint focus) const;
   std::vector<mol_setup::Dihedral> GetDihsOnBond(uint atom, uint partner) const;
 
 

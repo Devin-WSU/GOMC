@@ -152,26 +152,25 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     }
   }
 
-  InitCrankShaft(setupKind);
+  InitCrankShaft(kind);
 }
 
-void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
+void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
 {
   using namespace mol_setup;
-  std::vector<Angle> angles = AngsAll(kind);
   std::vector<uint> bondCount(totAtom, 0);
-  std::vector<Bond> allBonds = BondsAll(kind);
+
   //Count the number of bonds for each atom
-  for (uint b = 0; b < allBonds.size(); ++b) {
-    ++bondCount[allBonds[b].a0];
-    ++bondCount[allBonds[b].a1];
+  for (uint b = 0; b < kind.bondList.count; ++b) {
+    ++bondCount[kind.bondList.part1[b]];
+    ++bondCount[kind.bondList.part2[b]];
   }
 
-  for(uint a = 0; a < angles.size(); a++) {
+  for(uint a = 0; a < kind.angles.Count(); a++) {
     //find the atomindex in the angle
-    uint a0 = angles[a].a0;
-    uint a1 = angles[a].a1;
-    uint a2 = angles[a].a2;
+    uint a0 = kind.angles.GetBond(a, 0);
+    uint a1 = kind.angles.GetBond(a, 1);
+    uint a2 = kind.angles.GetBond(a, 2);
     //ignore single bonded atoms
     if(bondCount[a0] == 1 && bondCount[a2] == 1) {
       continue;

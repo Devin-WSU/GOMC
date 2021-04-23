@@ -280,6 +280,15 @@ std::vector<uint> GeomFeature::GetMidAnglesIndices(uint atom) const {
   return result;
 }
 
+std::vector<uint> GeomFeature::GetMidEndAnglesIndices(uint atom) const {
+  std::vector<uint> result;
+  for(int feature = 0; feature < count; ++feature){
+    if (atom == GetBond(feature, 1))
+      result.push_back(GetBond(feature, 1));
+  }
+  return result;
+}
+
 std::vector<mol_setup::Dihedral> GeomFeature::GetDihsOnBond(uint atom, uint partner) const {
   std::vector<mol_setup::Dihedral> result;
   for(int feature = 0; feature < count; ++feature){

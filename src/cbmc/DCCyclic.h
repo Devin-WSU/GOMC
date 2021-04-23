@@ -51,7 +51,7 @@ public:
 
 private:
   //Find the two nodes that are forming dihedral or angle and initialize it.
-  void InitCrankShaft(const mol_setup::MolKind& kind);
+  void InitCrankShaft(const MoleculeKind& kind);
   //Store edge's atom that are connected to node and has more than 1 bond
   //Each edge is a node as well
   struct Edge {
