@@ -18,6 +18,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #endif
 #include "EnsemblePreprocessor.h"
 
+/* For checkpointing serialization */
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+
 //Forward declare to give access to internal arrays.
 class BoxDimensions;
 
@@ -345,8 +351,32 @@ public:
 protected:
   uint count;
   bool allocDone;
-};
 
+private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & allocDone;
+    ar & count;
+    // save/load base class information
+    if (Archive::is_loading::value)
+    {
+        assert(x == nullptr);
+        x = new double[numAtoms];
+        assert(y == nullptr);
+        y = new uint[numAtoms];
+        assert(z == nullptr);
+        z = new double[numAtoms];        
+    }
+    ar & boost::serialization::make_array<double>(x, count);  
+    ar & boost::serialization::make_array<double>(y, count);  
+    ar & boost::serialization::make_array<double>(z, count);
+  }
+};
 
 inline XYZArray::XYZArray(XYZArray const& other)
 {

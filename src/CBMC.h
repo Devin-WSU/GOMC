@@ -56,7 +56,18 @@ public:
   virtual void BuildGrowInCav(TrialMol& oldMol, TrialMol& newMol, uint molIndex) = 0;
 
   virtual ~CBMC() {}
+
+private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {}
+
 };
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(CBMC);
 
 //Max allowed bonds to any atom
 static const uint MAX_BONDS = 6;

@@ -14,6 +14,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <algorithm>
 
+/* For checkpointing serialization */
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
+
 class Forcefield;
 
 
@@ -40,30 +46,120 @@ public:
   const uint nDihTrials;
   const uint nLJTrialsFirst;
   const uint nLJTrialsNth;
-  uint totalTrials;
 
+  XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
+
+  uint maxLJTrials;
+  /* Arrays of size maxLJTrials */
+  double* inter;          //intermolecule energies, reused for new and old
+  double* real;           //short range coulomb interaction
+  double* bonded;
+  double* oneFour;
+  double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energies
+  double* ljWeights;
+  bool* overlap;      //For detecting overlap for each LJ trial
+  /* Arrays of size maxLJTrials */
+
+
+  uint totalTrials;
+  /* Arrays of size totalTrials */
+  double* interT;     //For DCRotateCOM, we have combined first and Nth trial
+  double* realT;      //For DCRotateCOM, we have combined first and Nth trial
+  double* ljWeightsT; //For DCRotateCOM, we have combined first and Nth trial
+  bool* overlapT;     //For detecting overlap for each LJ trial. Used in DCRotateCOM
+  /* Arrays of size totalTrials */
+
+  uint trialMax;
+  /* Arrays of size trialMax */
   //used for both angles and dihedrals
   double* angles;
   double* angleWeights;
   double* angleEnergy;
-
-  XYZArray& positions;     //candidate positions for inclusion (alias for multiPositions[0])
-  double* inter;          //intermolecule energies, reused for new and old
-  double* real;           //short range coulomb interaction
-  double* ljWeights;
-  double* bonded;
-  double* oneFour;
-  double* nonbonded;      //calculated nonbonded 1_N LJ and coulomb energies
   double* nonbonded_1_4;  //calculated nonbonded 1_4 LJ and coulomb energies
   double* nonbonded_1_3;  //calculated nonbonded 1_3 LJ and coulomb energies
+  /* Arrays of size trialMax */
 
-  double* interT;     //For DCRotateCOM, we have combined first and Nth trial
-  double* realT;      //For DCRotateCOM, we have combined first and Nth trial
-  double* ljWeightsT; //For DCRotateCOM, we have combined first and Nth trial
-  bool* overlap;      //For detecting overlap for each LJ trial
-  bool* overlapT;     //For detecting overlap for each LJ trial. Used in DCRotateCOM
-
+  
   XYZArray multiPositions[MAX_BONDS];
+
+private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar &   nAngleTrials;
+    ar &   nDihTrials;
+    ar &   nLJTrialsFirst;
+    ar &   nLJTrialsNth;
+
+    ar &   maxLJTrials;
+    ar &   totalTrials;
+    ar &   trialMax;
+    if (Archive::is_loading::value)
+    {
+        assert(inter == nullptr);
+        inter = new double[maxLJTrials];
+        assert(real == nullptr);
+        real = new double[maxLJTrials];
+        assert(bonded == nullptr);
+        bonded = new double[maxLJTrials];        
+        assert(oneFour == nullptr);
+        oneFour = new double[maxLJTrials];
+        assert(nonbonded == nullptr);
+        nonbonded = new double[maxLJTrials];
+        assert(ljWeights == nullptr);
+        ljWeights = new double[maxLJTrials]; 
+        assert(overlap == nullptr);
+        overlap = new bool[maxLJTrials];
+
+        assert(interT == nullptr);
+        interT = new double[totalTrials];
+        assert(realT == nullptr);
+        realT = new double[totalTrials];        
+        assert(ljWeightsT == nullptr);
+        ljWeightsT = new double[totalTrials];
+        assert(overlapT == nullptr);
+        overlapT = new bool[totalTrials];
+
+        assert(angles == nullptr);
+        angles = new double[trialMax];
+        assert(angleWeights == nullptr);
+        angleWeights = new double[trialMax];
+        assert(angleEnergy == nullptr);
+        angleEnergy = new double[trialMax];        
+        assert(nonbonded_1_4 == nullptr);
+        nonbonded_1_4 = new double[trialMax];
+        assert(nonbonded_1_3 == nullptr);
+        nonbonded_1_3 = new double[trialMax];
+
+        assert(multiPositions == nullptr);
+        multiPositions = new XYZArray[MAX_BONDS];        
+    }
+    ar & boost::serialization::make_array<double>(inter, maxLJTrials);  
+    ar & boost::serialization::make_array<double>(real, maxLJTrials);  
+    ar & boost::serialization::make_array<double>(bonded, maxLJTrials);
+    ar & boost::serialization::make_array<double>(oneFour, maxLJTrials);  
+    ar & boost::serialization::make_array<double>(nonbonded, maxLJTrials);  
+    ar & boost::serialization::make_array<double>(ljWeights, maxLJTrials);
+    ar & boost::serialization::make_array<bool>(overlap, maxLJTrials); 
+
+    ar & boost::serialization::make_array<double>(interT, totalTrials);  
+    ar & boost::serialization::make_array<double>(realT, totalTrials);
+    ar & boost::serialization::make_array<double>(ljWeightsT, totalTrials);  
+    ar & boost::serialization::make_array<bool>(overlapT, totalTrials);
+
+    ar & boost::serialization::make_array<double>(angles, trialMax);
+    ar & boost::serialization::make_array<double>(angleWeights, trialMax);  
+    ar & boost::serialization::make_array<double>(angleEnergy, trialMax);  
+    ar & boost::serialization::make_array<double>(nonbonded_1_4, trialMax);
+    ar & boost::serialization::make_array<double>(nonbonded_1_3, trialMax);
+
+    ar & boost::serialization::make_array<XYZArray>(multiPositions, MAX_BONDS);
+  }
+
 };
 
 inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& set):
@@ -101,7 +197,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   ljWeightsT = new double[totalTrials];
   overlapT = new bool[totalTrials];
 
-  uint trialMax = std::max(nAngleTrials, nDihTrials);
+  trialMax = std::max(nAngleTrials, nDihTrials);
   angleEnergy = new double[trialMax];
   angleWeights = new double[trialMax];
   angles = new double[trialMax];

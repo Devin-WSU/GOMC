@@ -8,6 +8,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCCOMPONENT_H
 #include "BasicTypes.h"
 
+
+/* For checkpointing serialization */
+// include headers that implement a archive in simple text format
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/serialization/vector.hpp>
 //Class for Deferred Coupling CBMC components
 
 namespace cbmc
@@ -28,6 +34,8 @@ public:
   virtual void UpdateAcceptance(const TrialMol& mol) {}
   virtual ~DCComponent() {};
 };
+BOOST_SERIALIZATION_ASSUME_ABSTRACT(DCComponent);
+
 }
 
 #endif
