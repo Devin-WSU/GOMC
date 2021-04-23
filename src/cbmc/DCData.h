@@ -32,6 +32,7 @@ class DCData
 public:
   explicit  DCData(System& sys, const Forcefield& forcefield,
                    const Setup& set);
+  void Init();
   ~DCData();
 
   const CalculateEnergy& calc;
@@ -135,8 +136,10 @@ private:
         assert(nonbonded_1_3 == nullptr);
         nonbonded_1_3 = new double[trialMax];
 
+        /* This occurs is a preallocated array in object signature
         assert(multiPositions == nullptr);
-        multiPositions = new XYZArray[MAX_BONDS];        
+        multiPositions = new XYZArray[MAX_BONDS];
+        */        
     }
     ar & boost::serialization::make_array<double>(inter, maxLJTrials);  
     ar & boost::serialization::make_array<double>(real, maxLJTrials);  
@@ -173,7 +176,10 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   positions(*multiPositions)
 {
   calcEwald = sys.GetEwald();
-  uint maxLJTrials = nLJTrialsFirst;
+}
+
+inline void DCData::Init(){
+  maxLJTrials = nLJTrialsFirst;
   if ( nLJTrialsNth > nLJTrialsFirst )
     maxLJTrials = nLJTrialsNth;
 
@@ -184,6 +190,7 @@ inline DCData::DCData(System& sys, const Forcefield& forcefield, const Setup& se
   for(uint i = 0; i < MAX_BONDS; ++i) {
     multiPositions[i] = XYZArray(maxLJTrials);
   }
+
   inter = new double[maxLJTrials];
   real = new double[maxLJTrials];
   bonded = new double[maxLJTrials];

@@ -23,9 +23,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/serialization/vector.hpp>
+#include <boost/serialization/export.hpp>
+
+#include "DCLinear.h"
+#include "DCGraph.h"
+#include "DCCyclic.h"
 
 BOOST_CLASS_VERSION(MoleculeKind, 1);
-
+//BOOST_CLASS_EXPORT_GUID(cbmc::DCCyclic, "DCCyclic");
+//BOOST_CLASS_EXPORT_GUID(cbmc::DCGraph, "DCGraph");
+BOOST_CLASS_EXPORT_GUID(cbmc::DCLinear, "DCLinear");
 
 namespace mol_setup
 {
@@ -238,6 +245,7 @@ private:
     ar & boost::serialization::make_array<uint>(atomKind, numAtoms);  
     ar & boost::serialization::make_array<double>(atomCharge, numAtoms);  
     
+    ar & builder;
     
   }
 };

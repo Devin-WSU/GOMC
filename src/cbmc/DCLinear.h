@@ -24,6 +24,9 @@ class DCLinear : public CBMC
 public:
   DCLinear(System& sys, const Forcefield& ff,
            const MoleculeKind& kind, const Setup& set);
+  
+  void Init(System& sys, const Forcefield& ff,
+                   const MoleculeKind& kind, const Setup& set);
 
   void Build(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
   void Regrowth(TrialMol& oldMol, TrialMol& newMol, uint molIndex);
@@ -55,8 +58,10 @@ private:
     // save/load base class information
     ar & boost::serialization::base_object<CBMC>(*this);
     ar & atomSize;
-
-    ar & data;
+    //ar & forward;
+    //ar & backward;
+    //ar & idExchange;
+    //ar & data;
   }
 };
 }

@@ -99,7 +99,7 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
         boost::archive::text_iarchive ia(ifs);
         MoleculeKind * test = new MoleculeKind();
         ia >> *test;
-        test->builder = molRef.kinds[0].builder;
+        //test->builder = molRef.kinds[0].builder;
         molRef.kinds[0] = *test;
         // close archive
         ifs.close();  
