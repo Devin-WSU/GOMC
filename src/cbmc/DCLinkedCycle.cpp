@@ -55,7 +55,8 @@ DCLinkedCycle::DCLinkedCycle
   for (uint i = 0; i < hed.NumBond(); ++i) {
     bondKinds[i] = kind.bondList.kinds[onFocus[i]];
     //store the dihedral that boded[i] and focus are in the middle
-    bondedFocusDih.push_back(DihsOnBond(kind, kind.bondList.part2[onFocus[i]], focus));
+    bondedFocusDih.push_back(kind.dihedrals.GetDihsOnBond(kind.bondList.part2[onFocus[i]], focus));
+
     if(std::find(cycAtoms.begin(), cycAtoms.end(), kind.bondList.part2[onFocus[i]]) != cycAtoms.end()) {
       focBondedRing = i;
       bondedInRing[i] = true;
@@ -75,7 +76,7 @@ DCLinkedCycle::DCLinkedCycle
     }
   }
 
-  std::vector<Dihedral> dihs = DihsOnBond(kind, hed.Focus(), hed.Prev());
+  std::vector<Dihedral> dihs = kind.dihedrals.GetDihsOnBond(hed.Focus(), hed.Prev());
   for(uint i = 0; i < hed.NumBond(); ++i) {
     for(uint j = 0; j < nPrevBonds; ++j) {
       std::vector<Dihedral>::const_iterator match =

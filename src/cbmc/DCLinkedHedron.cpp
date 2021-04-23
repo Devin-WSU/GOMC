@@ -41,28 +41,27 @@ struct FindDih {
 namespace cbmc
 {
 DCLinkedHedron::DCLinkedHedron
-(DCData* data, const mol_setup::MolKind& kind, uint focus, uint prev)
+(DCData* data, const MoleculeKind& kind, uint focus, uint prev)
   : data(data), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<uint> onFocus = kind.bondList.GetBondIndices(hed.Focus());
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   //Find the atoms bonded to focus, except prev
   for (uint i = 0; i < hed.NumBond(); ++i) {
-    bondKinds[i] = onFocus[i].kind;
+    bondKinds[i] = kind.bondList.kinds[onFocus[i]];;
   }
 
-  std::vector<Bond> onPrev = AtomBonds(kind, hed.Prev());
+  std::vector<uint> onPrev = kind.bondList.GetBondIndices(hed.Prev());
   onPrev.erase(remove_if(onPrev.begin(), onPrev.end(), FindA1(hed.Focus())),
                onPrev.end());
   nPrevBonds = onPrev.size();
 
   for(uint i = 0; i < nPrevBonds; ++i) {
-    prevBonded[i] = onPrev[i].a1;
+    prevBonded[i] = kind.bondList.part2[onPrev[i]];
   }
-
-  std::vector<Dihedral> dihs = DihsOnBond(kind, hed.Focus(), hed.Prev());
+  std::vector<Dihedral> dihs = kind.dihedrals.GetDihsOnBond(hed.Focus(), hed.Prev());
   for(uint i = 0; i < hed.NumBond(); ++i) {
     for(uint j = 0; j < nPrevBonds; ++j) {
       std::vector<Dihedral>::const_iterator match =

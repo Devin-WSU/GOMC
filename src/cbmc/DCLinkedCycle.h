@@ -66,8 +66,8 @@ private:
   uint bondKinds[MAX_BONDS];
   bool bondedInRing[MAX_BONDS];
 
-  //std::vector< std::vector<mol_setup::Dihedral> > bondedFocusDih;
-  std::vector< std::vector<uint> > bondedFocusDih;
+  std::vector< std::vector<mol_setup::Dihedral> > bondedFocusDih;
+  //std::vector< std::vector<uint> > bondedFocusDih;
 
   std::vector<bool> bExist;
 };
