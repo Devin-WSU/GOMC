@@ -232,7 +232,17 @@ BondList::~BondList()
   delete[] kinds;
 }
 
+void BondList::GetBondIndices(std::vector<uint> & bIndices, uint atom) const{
+  for (int i = 0; i < count; ++i)
+    if ((part1[i] == atom )|| (part2[i] == atom))
+      bIndices.push_back(i);
+}
 
+void BondList::GetBondsOnAtom(std::vector<mol_setup::Bond> & bonds, uint atom) const{
+  for (int i = 0; i < count; ++i)
+    if ((part1[i] == atom )|| (part2[i] == atom))
+      bonds.push_back(mol_setup::Bond(part1[i], part2[i]));
+}
 
 
 GeomFeature::GeomFeature(uint atomsPer) : bondsPer(atomsPer - 1),
@@ -263,6 +273,46 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
       findPair(angles[i].a1, angles[i].a2, bList);
     ++bondCounter;
     kinds[i] = angles[i].kind;
+  }
+}
+
+void GeomFeature::GetMidAnglesIndices(std::vector<uint> & angleIndices, uint atom) const {
+  for(int feature = 0; feature < count; ++feature){
+    if (atom == GetBond(feature, 1))
+      angleIndices.push_back(GetBond(feature, 1));
+  }
+}
+
+void GeomFeature::GetAtomMidEndAngles(std::vector<mol_setup::Angle> & angles, uint mid, uint atom) const{
+  for(int feature = 0; feature < count; ++feature){
+    if ((GetBond(feature, 0) == atom || GetBond(feature, 2) == atom) && (GetBond(feature, 1) == mid)) {
+      angles.push_back(mol_setup::Angle(GetBond(feature, 0), 
+                                        GetBond(feature, 1),
+                                        GetBond(feature, 2)));
+
+      if (GetBond(feature, 2) == atom) {
+        std::swap(angles.back().a0, angles.back().a2);
+      }
+    }
+  }
+}
+
+
+void GeomFeature::GetDihsOnBond(std::vector<mol_setup::Dihedral> & dihedrals, uint atom, uint partner) const {
+  for(int feature = 0; feature < count; ++feature){
+    if (GetBond(feature, 1) == atom && GetBond(feature, 2) == partner) {
+      dihedrals.push_back(mol_setup::Dihedral( GetBond(feature, 0),
+                                            GetBond(feature, 1),
+                                            GetBond(feature, 2),
+                                            GetBond(feature, 3)));
+      dihedrals.back().kind = GetKind(feature);
+    } else if (GetBond(feature, 1) == partner && GetBond(feature, 2) == atom) {
+      dihedrals.push_back(mol_setup::Dihedral( GetBond(feature, 3),
+                                            GetBond(feature, 2),
+                                            GetBond(feature, 1),
+                                            GetBond(feature, 0)));
+      dihedrals.back().kind = GetKind(feature);
+    }
   }
 }
 
