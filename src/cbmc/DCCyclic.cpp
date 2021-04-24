@@ -196,9 +196,10 @@ void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
     bool sameRing = false;
     if(isRing[a1]) {
       //FInd the atoms that are bonded to a1
-      std::vector<Bond> bonds = AtomBonds(kind, a1);
+      std::vector<uint> bonds;
+      kind.bondList.GetBondIndices(bonds, a1);
       for(uint b = 0; b < bonds.size(); b++) {
-        uint partner = bonds[b].a1;
+        uint partner = kind.bondList.part2[bonds[b]];
         if((partner == a0) || (partner == a2)) {
           continue;
         }

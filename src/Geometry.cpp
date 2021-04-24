@@ -269,15 +269,6 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
   }
 }
 
-std::vector<uint> GeomFeature::GetMidAnglesIndices(uint atom) const {
-  std::vector<uint> result;
-  for(int feature = 0; feature < count; ++feature){
-    if (atom == GetBond(feature, 1))
-      result.push_back(GetBond(feature, 1));
-  }
-  return result;
-}
-
 void GeomFeature::GetMidAnglesIndices(std::vector<uint> & angleIndices, uint atom) const {
   for(int feature = 0; feature < count; ++feature){
     if (atom == GetBond(feature, 1))

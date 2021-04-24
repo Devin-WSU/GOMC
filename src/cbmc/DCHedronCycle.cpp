@@ -73,7 +73,8 @@ DCHedronCycle::DCHedronCycle(DCData* data, const MoleculeKind& kind,
   for (uint i = 0; i < nBonds; ++i) {
     bonded[i] = kind.bondList.part2[onFocus[i]];
   }
-  std::vector<uint> angles = kind.angles.GetMidAnglesIndices(focus);
+  std::vector<uint> angles;
+  kind.angles.GetMidAnglesIndices(angles, focus);
   //std::vector<Angle> angles = AtomMidAngles(kind, focus);
   double sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
