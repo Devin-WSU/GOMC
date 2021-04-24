@@ -8,7 +8,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #define DCONSPHERE_H
 #include "DCComponent.h"
 #include "BasicTypes.h"
-
+#include "MoleculeKind.h"
 namespace mol_setup
 {
 class MolKind;
@@ -21,7 +21,7 @@ class DCData;
 class DCOnSphere : public DCComponent
 {
 public:
-  DCOnSphere(DCData* data, const mol_setup::MolKind kind,
+  DCOnSphere(DCData* data, const MoleculeKind& kind,
              uint atom, uint focus);
   void PrepareNew(TrialMol& newMol, uint molIndex) {};
   void PrepareOld(TrialMol& oldMol, uint molIndex) {};

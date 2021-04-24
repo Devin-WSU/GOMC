@@ -20,20 +20,22 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
                  const MoleculeKind& kind, const Setup& set)
   : data(sys, ff, set)
 {
+/*
   using namespace mol_setup;
   MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
   assert(it != set.mol.kindMap.end());
   const MolKind setupKind = it->second;
+*/
 
-  idExchange = new DCRotateCOM(&data, setupKind);
+  idExchange = new DCRotateCOM(&data, kind);
   //init the coordinate
-  coords.Init(setupKind.atoms.size());
+  coords.Init(kind.NumAtoms());
 
-  std::vector<uint> atomToNode(setupKind.atoms.size(), 0);
-  std::vector<uint> bondCount(setupKind.atoms.size(), 0);
+  std::vector<uint> atomToNode(kind.NumAtoms(), 0);
+  std::vector<uint> bondCount(kind.NumAtoms(), 0);
   //Count the number of bonds for each atom
-  for (uint b = 0; b < setupKind.bonds.size(); ++b) {
-    const Bond& bond = setupKind.bonds[b];
+  for (uint b = 0; b < kind.bondList.count; ++b) {
+    const Bond& bond = mol_setup::Bond(kind.bondList.part1[b], kind.bondList.part2[b]);
     ++bondCount[bond.a0];
     ++bondCount[bond.a1];
   }
@@ -41,22 +43,24 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
   //Find the node (number of bound > 1)
   //Construct the starting node (DCFreeHedron)
   //Construct the Linking node (DCLinkHedron)
-  for (uint atom = 0; atom < setupKind.atoms.size(); ++atom) {
+  for (uint atom = 0; atom < kind.NumAtoms(); ++atom) {
     if (bondCount[atom] < 2) {
       atomToNode[atom] = -1;
     } else {
       //Get the information of other Atoms that are bonded to the atom
-      std::vector<Bond> bonds = AtomBonds(setupKind, atom);
+      //std::vector<Bond> bonds = AtomBonds(setupKind, atom);
+      std::vector<Bond> bonds;
+      kind.bondList.GetBondsOnAtom(bonds, atom);
       atomToNode[atom] = nodes.size();
       //Add atom to the node list and initialize it with DCFreeHedron, atom and
       // the first partner of the atom
       nodes.push_back(Node());
       Node& node = nodes.back();
       //Atoms bonded to atom will be build from focus (atom) in random loc.
-      node.starting = new DCFreeHedron(&data, setupKind, atom,
+      node.starting = new DCFreeHedron(&data, kind, atom,
                                        bonds[0].a1);
       //Atoms bonded to atom will be build from focus (atom) in specified loc.
-      node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
+      node.restarting = new DCFreeHedronSeed(&data, kind, atom,
                                              bonds[0].a1);
       //set the atom index of the node
       node.atomIndex = atom;
@@ -71,7 +75,7 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
         //Add partner to the edge list of node and initialize it with partner
         //and the atom in DCLinkedHedron
         //Atoms will be build from prev(atom) to focus (partner)
-        Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner,
+        Edge e = Edge(partner, new DCLinkedHedron(&data, kind, partner,
                       atom));
         node.edges.push_back(e);
       }
@@ -87,15 +91,18 @@ DCGraph::DCGraph(System& sys, const Forcefield& ff,
     }
   }
 
-  InitCrankShaft(setupKind);
+  InitCrankShaft(kind);
 }
 
 
-void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
+void DCGraph::InitCrankShaft(const MoleculeKind& kind)
 {
   using namespace mol_setup;
-  std::vector<uint> bondCount(kind.atoms.size(), 0);
-  std::vector<Bond> allBonds = BondsAll(kind);
+  std::vector<uint> bondCount(kind.NumAtoms(), 0);
+  //std::vector<Bond> allBonds = BondsAll(kind);
+  std::vector<Bond> allBonds;
+  kind.bondList.GetAllBonds(allBonds);
+
   //Count the number of bonds for each atom
   for (uint b = 0; b < allBonds.size(); ++b) {
     ++bondCount[allBonds[b].a0];
@@ -103,7 +110,9 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   }
 
   //Start with atoms that form dihedral
-  std::vector<Dihedral> dihs = DihsAll(kind);
+  //std::vector<Dihedral> dihs = DihsAll(kind);
+  std::vector<Dihedral> dihs;
+  kind.dihedrals.GetAllDihedrals(dihs);
   for(uint d = 0; d < dihs.size(); d++) {
     //find the last atom index in the dihedral
     uint a0 = dihs[d].a0;
@@ -117,9 +126,14 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle;
+    kind.angles.GetAtomMidEndAngles(angle, a0, a1);
+
     //Find all the angle that forms a2-a3-x
-    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+    //std::vector<Angle> tempAng = AtomMidEndAngles(kind, a3, a2);
+    std::vector<Angle> tempAng;
+    kind.angles.GetAtomMidEndAngles(tempAng, a3, a2);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.
@@ -136,7 +150,10 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
   }
 
   //Continue with the atoms that form angles.
-  std::vector<Angle> angles = AngsAll(kind);
+  //std::vector<Angle> angles = AngsAll(kind);
+  std::vector<Angle> angles;
+  kind.angles.GetAllAngles(angles);
+
   for(uint a = 0; a < angles.size(); a++) {
     //find the last atom index in the angle
     uint a0 = angles[a].a0;
@@ -149,9 +166,13 @@ void DCGraph::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    //std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle;
+    kind.angles.GetAtomMidEndAngles(angle, a0, a1);
     //Find all the angle that forms a1-a2-x
-    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    //std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    std::vector<Angle> tempAng;
+    kind.angles.GetAtomMidEndAngles(tempAng, a2, a1);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.

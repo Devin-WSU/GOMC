@@ -24,18 +24,14 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
                    const MoleculeKind& kind, const Setup& set)
   : data(sys, ff, set)
 {
-  using namespace mol_setup;
-  MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
-  assert(it != set.mol.kindMap.end());
-  const MolKind setupKind = it->second;
-  totAtom = setupKind.atoms.size();
+  totAtom = kind.NumAtoms();
 
   if(totAtom < 4) {
     std::cout << "Error: GOMC does not support cyclic molecule with 3 atoms!\n\n";
     exit(EXIT_FAILURE);
   }
 
-  idExchange = new DCRotateCOM(&data, setupKind);
+  idExchange = new DCRotateCOM(&data, kind);
 
   //init the coordinate
   coords.Init(totAtom);
@@ -47,8 +43,8 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
   CircuitFinder CF(totAtom);
 
   //Count the number of bonds for each atom
-  for (uint b = 0; b < setupKind.bonds.size(); ++b) {
-    const Bond& bond = setupKind.bonds[b];
+  for (uint b = 0; b < kind.bondList.count; ++b) {
+    const Bond& bond = mol_setup::Bond(kind.bondList.part1[b], kind.bondList.part2[b]);
     ++bondCount[bond.a0];
     ++bondCount[bond.a1];
     CF.addEdge(bond.a0, bond.a1);
@@ -81,7 +77,8 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
       atomToNode[atom] = -1;
     } else {
       //Get the information of other Atoms that are bonded to the atom
-      std::vector<Bond> bonds = AtomBonds(setupKind, atom);
+      std::vector<Bond> bonds;
+      kind.bondList.GetBondsOnAtom(bonds, atom);
       atomToNode[atom] = nodes.size();
       //Add atom to the node list and initialize it with DCFreeHedron, atom and
       // the first partner of the atom
@@ -100,17 +97,17 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
         }
         assert(prev != -1);
         //Atoms bonded to atom will be build from focus (atom) in random loc.
-        node.starting = new DCFreeCycle(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+        node.starting = new DCFreeCycle(&data, kind, cyclicAtoms[ringIdx[atom]],
                                         atom, prev);
         //Atoms bonded to atom will be build from focus (atom) in specified loc.
-        node.restarting = new DCFreeCycleSeed(&data, setupKind, cyclicAtoms[ringIdx[atom]],
+        node.restarting = new DCFreeCycleSeed(&data, kind, cyclicAtoms[ringIdx[atom]],
                                               atom, prev);
       } else {
         //Atoms bonded to atom will be build from focus (atom) in random loc.
-        node.starting = new DCFreeHedron(&data, setupKind, atom,
+        node.starting = new DCFreeHedron(&data, kind, atom,
                                          bonds[0].a1);
         //Atoms bonded to atom will be build from focus (atom) in specified loc.
-        node.restarting = new DCFreeHedronSeed(&data, setupKind, atom,
+        node.restarting = new DCFreeHedronSeed(&data, kind, atom,
                                                bonds[0].a1);
       }
 
@@ -129,7 +126,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedCycle(&data, setupKind, cyclicAtoms[ringIdx[partner]],
+          Edge e = Edge(partner, new DCLinkedCycle(&data, kind, cyclicAtoms[ringIdx[partner]],
                         partner, atom));
           node.edges.push_back(e);
 
@@ -137,7 +134,7 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
           //Add partner to the edge list of node and initialize it with partner
           //and the atom in DCLinkedHedron or DCLinkedCycle or DCCloseCycle
           //Atoms will be build from prev(atom) to focus(partner)
-          Edge e = Edge(partner, new DCLinkedHedron(&data, setupKind, partner, atom));
+          Edge e = Edge(partner, new DCLinkedHedron(&data, kind, partner, atom));
           node.edges.push_back(e);
         }
       }
@@ -153,15 +150,17 @@ DCCyclic::DCCyclic(System& sys, const Forcefield& ff,
     }
   }
 
-  InitCrankShaft(setupKind);
+  InitCrankShaft(kind);
 }
 
-void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
+void DCCyclic::InitCrankShaft(const MoleculeKind& kind)
 {
   using namespace mol_setup;
-  std::vector<Angle> angles = AngsAll(kind);
+  std::vector<Angle> angles;
+  kind.angles.GetAllAngles(angles);
   std::vector<uint> bondCount(totAtom, 0);
-  std::vector<Bond> allBonds = BondsAll(kind);
+  std::vector<Bond> allBonds;
+  kind.bondList.GetAllBonds(allBonds);
   //Count the number of bonds for each atom
   for (uint b = 0; b < allBonds.size(); ++b) {
     ++bondCount[allBonds[b].a0];
@@ -180,9 +179,11 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
 
     bool fixAngle = false;
     //Find all the angle that forms x-a0-a1
-    std::vector<Angle> angle = AtomMidEndAngles(kind, a0, a1);
+    std::vector<Angle> angle;
+    kind.angles.GetAtomMidEndAngles(angle, a0, a1);
     //Find all the angle that forms a1-a2-x
-    std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+    std::vector<Angle> tempAng;
+    kind.angles.GetAtomMidEndAngles(tempAng, a2, a1);
     //merge all the angle
     angle.insert(angle.end(), tempAng.begin(), tempAng.end());
     //Check to see if any of these angles are fixed or not.
@@ -195,7 +196,8 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
     bool sameRing = false;
     if(isRing[a1]) {
       //FInd the atoms that are bonded to a1
-      std::vector<Bond> bonds = AtomBonds(kind, a1);
+      std::vector<Bond> bonds;
+      kind.bondList.GetBondsOnAtom(bonds, a1);
       for(uint b = 0; b < bonds.size(); b++) {
         uint partner = bonds[b].a1;
         if((partner == a0) || (partner == a2)) {
@@ -219,7 +221,8 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
     //If this atom is in the ring
     if(isRing[atom]) {
       //Find all the angle that forms x-atom-x
-      std::vector<Angle> angle = AtomMidAngles(kind, atom);
+      std::vector<Angle> angle;
+      kind.angles.GetAtomMidAngles(angle, atom);
       for(uint a = 0; a < angle.size(); a++) {
         //find the atomindex in the angle
         uint a0 = angle[a].a0;
@@ -234,7 +237,8 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
           bool fixAngle = false;
           bool sameRing = false;
           //Find the atoms that are bonded to a1
-          std::vector<Bond> bonds = AtomBonds(kind, a1);
+          std::vector<Bond> bonds;
+          kind.bondList.GetBondsOnAtom(bonds, a1);
           for(uint b = 0; b < bonds.size(); b++) {
             uint partner = bonds[b].a1;
             if((partner == a0) || (partner == a2)) {
@@ -244,7 +248,8 @@ void DCCyclic::InitCrankShaft(const mol_setup::MolKind& kind)
               sameRing |= (ringIdx[a1] == ringIdx[partner]);
             }
             //Find all the angle that forms partner-a1-x (x is either a0 or a2)
-            std::vector<Angle> ang = AtomMidEndAngles(kind, a1, partner);
+            std::vector<Angle> ang;
+            kind.angles.GetAtomMidEndAngles(ang, a1, partner);
             //Check to see if any of these angles are fixed or not.
             for(uint i = 0; i < ang.size(); i++) {
               fixAngle |= data.ff.angles->AngleFixed(ang[i].kind);

@@ -23,7 +23,7 @@ class DCRotateOnAtom;
 class DCRotateOnAtom : public DCComponent
 {
 public:
-  DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
+  DCRotateOnAtom(DCData* data, const MoleculeKind& kind,
                  uint a0, uint a1, uint a2);
   ~DCRotateOnAtom()
   {

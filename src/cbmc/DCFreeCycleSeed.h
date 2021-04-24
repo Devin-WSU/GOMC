@@ -22,7 +22,7 @@ class DCData;
 class DCFreeCycleSeed : public DCComponent
 {
 public:
-  DCFreeCycleSeed(DCData* data, const mol_setup::MolKind& kind,
+  DCFreeCycleSeed(DCData* data, const MoleculeKind& kind,
                   const std::vector<int> &cycAtoms, uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);

@@ -244,6 +244,11 @@ void BondList::GetBondsOnAtom(std::vector<mol_setup::Bond> & bonds, uint atom) c
       bonds.push_back(mol_setup::Bond(part1[i], part2[i]));
 }
 
+void BondList::GetAllBonds(std::vector<mol_setup::Bond> & bonds) const{
+  for (int i = 0; i < count; ++i)
+    bonds.push_back(mol_setup::Bond(part1[i], part2[i]));
+}
+
 
 GeomFeature::GeomFeature(uint atomsPer) : bondsPer(atomsPer - 1),
   bondIndices(NULL), kinds(NULL), count(0) {}
@@ -276,6 +281,7 @@ void GeomFeature::Init(const std::vector<mol_setup::Angle>& angles, const BondLi
   }
 }
 
+/* SOA */
 void GeomFeature::GetMidAnglesIndices(std::vector<uint> & angleIndices, uint atom) const {
   for(int feature = 0; feature < count; ++feature){
     if (atom == GetBond(feature, 1))
@@ -283,6 +289,31 @@ void GeomFeature::GetMidAnglesIndices(std::vector<uint> & angleIndices, uint ato
   }
 }
 
+/*AOS */
+void GeomFeature::GetAllAngles(std::vector<mol_setup::Angle> & angles) const {
+  for(int feature = 0; feature < count; ++feature){
+    angles.push_back(mol_setup::Angle(GetBond(feature, 0),GetBond(feature, 1),GetBond(feature, 2)));
+  }
+}
+
+void GeomFeature::GetAllDihedrals(std::vector<mol_setup::Dihedral> & dihedrals) const {
+  for(int feature = 0; feature < count; ++feature){
+    dihedrals.push_back(mol_setup::Dihedral(  GetBond(feature, 0),
+                                              GetBond(feature, 1),
+                                              GetBond(feature, 2),
+                                              GetBond(feature, 3)));
+  }
+}
+
+
+void GeomFeature::GetAtomMidAngles(std::vector<mol_setup::Angle> & angles, uint atom) const {
+  for(int feature = 0; feature < count; ++feature){
+    if (atom == GetBond(feature, 1))
+      angles.push_back(mol_setup::Angle(GetBond(feature, 0),GetBond(feature, 1),GetBond(feature, 2)));
+  }
+}
+
+/*AOS */
 void GeomFeature::GetAtomMidEndAngles(std::vector<mol_setup::Angle> & angles, uint mid, uint atom) const{
   for(int feature = 0; feature < count; ++feature){
     if ((GetBond(feature, 0) == atom || GetBond(feature, 2) == atom) && (GetBond(feature, 1) == mid)) {
@@ -312,6 +343,23 @@ void GeomFeature::GetDihsOnBond(std::vector<mol_setup::Dihedral> & dihedrals, ui
                                             GetBond(feature, 1),
                                             GetBond(feature, 0)));
       dihedrals.back().kind = GetKind(feature);
+    }
+  }
+}
+
+//List of dihedrals with atom at one end, atom first
+void GeomFeature::GetAtomEndDihs(std::vector<mol_setup::Dihedral> & dihedrals, uint atom) const
+{
+  for(int feature = 0; feature < count; ++feature){
+    if (GetBond(feature, 0) == atom && GetBond(feature, 3) == atom) {
+      dihedrals.push_back(mol_setup::Dihedral(GetBond(feature, 0),
+                                            GetBond(feature, 1),
+                                            GetBond(feature, 2),
+                                            GetBond(feature, 3)));
+    }
+    if (GetBond(feature, 3) == atom) {
+      std::swap(dihedrals.back().a0, dihedrals.back().a3);
+      std::swap(dihedrals.back().a1, dihedrals.back().a2);
     }
   }
 }

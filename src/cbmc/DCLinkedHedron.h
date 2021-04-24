@@ -22,7 +22,7 @@ class DCData;
 class DCLinkedHedron : public DCComponent
 {
 public:
-  DCLinkedHedron(DCData* data, const mol_setup::MolKind& kind,
+  DCLinkedHedron(DCData* data, const MoleculeKind& kind,
                  uint focus, uint prev);
   void PrepareNew(TrialMol& newMol, uint molIndex);
   void PrepareOld(TrialMol& oldMol, uint molIndex);

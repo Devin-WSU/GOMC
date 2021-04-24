@@ -154,9 +154,11 @@ struct BondList {
 
   void Init(const std::vector<mol_setup::Bond>& bonds);
   bool IsBonded(const uint &i, const uint &j);
+  /* SOA version */
   void GetBondIndices(std::vector<uint> & bIndices, uint atom) const;
-  void GetBondsOnAtom(std::vector<mol_setup::Bond> & dihedrals, uint atom) const;
-
+  /* AOS version */
+  void GetBondsOnAtom(std::vector<mol_setup::Bond> & bonds, uint atom) const;
+  void GetAllBonds(std::vector<mol_setup::Bond> & bonds) const;
   BondList();
   ~BondList();
 
@@ -202,9 +204,17 @@ public:
   explicit GeomFeature(uint atomsPer);
   ~GeomFeature();
 
+  /* AOS Versions */
+  void GetAllAngles(std::vector<mol_setup::Angle> & angles) const; 
+  void GetAllDihedrals(std::vector<mol_setup::Dihedral> & dihedrals) const;
+
+  void GetAtomMidAngles(std::vector<mol_setup::Angle> & angles, uint atom) const;
   void GetAtomMidEndAngles(std::vector<mol_setup::Angle> & angles, uint mid, uint atom) const;
   void GetDihsOnBond(std::vector<mol_setup::Dihedral> & dihedrals, uint atom, uint partner) const;
+  void GetAtomEndDihs(std::vector<mol_setup::Dihedral> & dihedrals, uint atom) const;
 
+/* SOA */
+  void GetMidAnglesIndices(std::vector<uint> & angleIndices, uint atom) const;
 
   //Return number of features in molecule
   uint Count() const

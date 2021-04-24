@@ -35,15 +35,16 @@ struct FindAngle {
   }
 };
 
-DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
+DCRotateOnAtom::DCRotateOnAtom(DCData* data, const MoleculeKind& kind,
                                uint a0, uint a1, uint a2) :
   data(data), a0(a0), a1(a1), a2(a2)
 {
   using namespace mol_setup;
-  std::vector<bool> visited(kind.atoms.size(), false);
-  totAtoms = kind.atoms.size();
+  std::vector<bool> visited(kind.NumAtoms(), false);
+  totAtoms = kind.NumAtoms();
   //Find all the atoms that bonds with atoms a1
-  std::vector<Bond> bonds = AtomBonds(kind, a1);
+  std::vector<Bond> bonds;
+  kind.bondList.GetBondsOnAtom(bonds, a1);
   //Remove the a0-a1 and a1-a2 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a2)), bonds.end());
@@ -57,7 +58,8 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
       visited[bonds[b].a0] = true;
     }
 
-    std::vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
+    std::vector<Bond> temp;
+    kind.bondList.GetBondsOnAtom(temp, bonds[b].a1);
     for(uint i = 0; i < temp.size(); i++) {
       if(!visited[temp[i].a0]) {
         bonds.push_back(temp[i]);
@@ -84,13 +86,16 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
 
   //Find the angles affected by rotation
   //First find the angle x-a1-x
-  ang = AtomMidAngles(kind, a1);
+  kind.angles.GetAtomMidAngles(ang, a1);
+  //ang = AtomMidAngles(kind, a1);
   //Remove the a0-a1-a2 angle
   ang.erase(remove_if(ang.begin(), ang.end(), FindAngle(a0, a2)), ang.end());
 
   //Find the dihedral affected by rotation
   //First find the dihedral with x-a0-a1-x in the middle
-  std::vector<Dihedral>tempDih = DihsOnBond(kind, a1, a0);
+  std::vector<Dihedral>tempDih;
+  kind.dihedrals.GetDihsOnBond(tempDih, a1, a0);
+  //std::vector<Dihedral>tempDih = DihsOnBond(kind, a1, a0);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a0) != atoms.end()) {
@@ -98,7 +103,9 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
     }
   }
   //Add dihedral with x-a1-a2-x
-  tempDih = DihsOnBond(kind, a1, a2);
+  tempDih.clear();
+  //tempDih = DihsOnBond(kind, a1, a2);
+  kind.dihedrals.GetDihsOnBond(tempDih, a1, a2);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a0) != atoms.end()) {
@@ -107,7 +114,9 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
   }
 
   //Add dihedral with atom a0 in one end: x-x-x-a0
-  tempDih = AtomEndDihs(kind, a0);
+  tempDih.clear();
+  kind.dihedrals.GetAtomEndDihs(tempDih, a0);
+  //tempDih = AtomEndDihs(kind, a0);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) != atoms.end()) {
@@ -115,7 +124,9 @@ DCRotateOnAtom::DCRotateOnAtom(DCData* data, const mol_setup::MolKind& kind,
     }
   }
   //Add dihedral with atom a2 in one end: x-x-x-a2
-  tempDih = AtomEndDihs(kind, a2);
+  tempDih.clear();
+  kind.dihedrals.GetAtomEndDihs(tempDih, a2);
+  //tempDih = AtomEndDihs(kind, a2);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) != atoms.end()) {

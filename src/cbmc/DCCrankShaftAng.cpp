@@ -26,15 +26,15 @@ struct FindA1 {
   uint x;
 };
 
-DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
+DCCrankShaftAng::DCCrankShaftAng(DCData* data, const MoleculeKind& kind,
                                  uint a0, uint a1, uint a2) :
   data(data), a0(a0), a1(a1), a2(a2)
 {
-  using namespace mol_setup;
-  std::vector<bool> visited(kind.atoms.size(), false);
-  totAtoms = kind.atoms.size();
+  std::vector<bool> visited(kind.NumAtoms(), false);
+  totAtoms = kind.NumAtoms();
   //Find all the atoms that bonds with atoms a1
-  std::vector<Bond> bonds = AtomBonds(kind, a1);
+  std::vector<Bond> bonds;
+  kind.bondList.GetBondsOnAtom(bonds, a1);
   //Remove the a0-a1 and a1-a2 bond
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a0)), bonds.end());
   bonds.erase(remove_if(bonds.begin(), bonds.end(), FindA1(a2)), bonds.end());
@@ -49,8 +49,8 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
       atoms.push_back(bonds[b].a0);
       visited[bonds[b].a0] = true;
     }
-
-    std::vector<Bond> temp = AtomBonds(kind, bonds[b].a1);
+    std::vector<Bond> temp;
+    kind.bondList.GetBondsOnAtom(temp, bonds[b].a1);
     for(uint i = 0; i < temp.size(); i++) {
       if(!visited[temp[i].a0]) {
         bonds.push_back(temp[i]);
@@ -77,19 +77,26 @@ DCCrankShaftAng::DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
 
   //Find the angles affected by rotation
   //First find the angle x-a0-a1
-  ang = AtomMidEndAngles(kind, a0, a1);
+  //ang = AtomMidEndAngles(kind, a0, a1);
+  kind.angles.GetAtomMidEndAngles(ang, a0, a1);
   //Add angle with a1-a2-x
-  std::vector<Angle> tempAng = AtomMidEndAngles(kind, a2, a1);
+  std::vector<Angle> tempAng;
+  kind.angles.GetAtomMidEndAngles(tempAng, a2, a1);
   ang.insert(ang.end(), tempAng.begin(), tempAng.end());
 
   //Find the dihedral affected by rotation
   //First find the dihedral with x-a0-a1-x in the middle
-  dih = DihsOnBond(kind, a0, a1);
+  kind.dihedrals.GetDihsOnBond(dih, a0, a1);
   //Add dihedral with x-a1-a2-x
-  std::vector<Dihedral> tempDih = DihsOnBond(kind, a1, a2);
+  std::vector<Dihedral> tempDih;
+  kind.dihedrals.GetDihsOnBond(tempDih, a1, a2);
+ 
   dih.insert(dih.end(), tempDih.begin(), tempDih.end());
   //Add dihedral with atom a1 in one end: x-x-x-a1
-  tempDih = AtomEndDihs(kind, a1);
+  // Used to overwrite this vector variable
+  //tempDih = AtomEndDihs(kind, a1);
+  tempDih.clear();
+  kind.dihedrals.GetAtomEndDihs(tempDih, a1);
   for(uint i = 0; i < tempDih.size(); i++) {
     //Make sure that the dihedral atoms are not in the list since they are constant.
     if(std::find(atoms.begin(), atoms.end(), tempDih[i].a3) == atoms.end()) {

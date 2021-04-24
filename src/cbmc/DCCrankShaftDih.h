@@ -23,7 +23,7 @@ class DCCrankShaftDih;
 class DCCrankShaftDih : public DCComponent
 {
 public:
-  DCCrankShaftDih(DCData* data, const mol_setup::MolKind& kind,
+  DCCrankShaftDih(DCData* data, const MoleculeKind& kind,
                   uint a0, uint a1, uint a2, uint a3);
   ~DCCrankShaftDih()
   {

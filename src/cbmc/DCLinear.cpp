@@ -16,20 +16,21 @@ DCLinear::DCLinear(System& sys, const Forcefield& ff,
                    const MoleculeKind& kind, const Setup& set) :
   data(sys, ff, set)
 {
-  mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
-  assert(it != set.mol.kindMap.end());
-  const mol_setup::MolKind setupKind = it->second;
+
+  //mol_setup::MolMap::const_iterator it = set.mol.kindMap.find(kind.name);
+  //assert(it != set.mol.kindMap.end());
+  //const mol_setup::MolKind setupKind = it->second;
   uint size = kind.NumAtoms();
   atomSize = size;
 
-  idExchange = new DCRotateCOM(&data, setupKind);
+  idExchange = new DCRotateCOM(&data, kind);
   //First atom of the molecule
   forward.push_back(new DCSingle(&data, 0));
   backward.push_back(new DCSingle(&data, size - 1));
   //second atom of the molecule
   if(atomSize > 1) {
-    forward.push_back(new DCOnSphere(&data, setupKind, 1, 0));
-    backward.push_back(new DCOnSphere(&data, setupKind, size - 2, size - 1));
+    forward.push_back(new DCOnSphere(&data, kind, 1, 0));
+    backward.push_back(new DCOnSphere(&data, kind, size - 2, size - 1));
   }
 }
 

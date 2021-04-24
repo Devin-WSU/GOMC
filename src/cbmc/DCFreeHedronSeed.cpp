@@ -26,12 +26,14 @@ struct FindA1 {
   uint x;
 };
 
-DCFreeHedronSeed::DCFreeHedronSeed(DCData* data, const mol_setup::MolKind& kind,
+DCFreeHedronSeed::DCFreeHedronSeed(DCData* data, const MoleculeKind& kind,
                                    uint focus, uint prev)
   : data(data), hed(data, kind, focus, prev)
 {
   using namespace mol_setup;
-  std::vector<Bond> onFocus = AtomBonds(kind, hed.Focus());
+  std::vector<Bond> onFocus;
+  kind.bondList.GetBondsOnAtom(onFocus, hed.Focus());
+
   for(uint i = 0; i < onFocus.size(); ++i) {
     if (onFocus[i].a1 == prev) {
       anchorKind = onFocus[i].kind;

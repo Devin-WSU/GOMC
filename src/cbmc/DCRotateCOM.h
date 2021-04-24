@@ -23,7 +23,7 @@ class DCData;
 class DCRotateCOM : public DCComponent
 {
 public:
-  DCRotateCOM(DCData* data, const mol_setup::MolKind kind);
+  DCRotateCOM(DCData* data, const MoleculeKind& kind);
   ~DCRotateCOM()
   {
     delete[] multiPosRotions;

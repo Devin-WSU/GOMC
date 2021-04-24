@@ -23,7 +23,7 @@ class DCCrankShaftAng;
 class DCCrankShaftAng : public DCComponent
 {
 public:
-  DCCrankShaftAng(DCData* data, const mol_setup::MolKind& kind,
+  DCCrankShaftAng(DCData* data, const MoleculeKind& kind,
                   uint a0, uint a1, uint a2);
   ~DCCrankShaftAng()
   {

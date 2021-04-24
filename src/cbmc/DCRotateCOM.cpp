@@ -27,13 +27,13 @@ Molecule is allowed to have rotation around COM or around Z-axis
 namespace cbmc
 {
 
-DCRotateCOM::DCRotateCOM(DCData* data, const mol_setup::MolKind kind)
+DCRotateCOM::DCRotateCOM(DCData* data, const MoleculeKind& kind)
   : data(data), rotateMatrix(3), invMatrix(3)
 {
   rotateMatrix.Set(0, 0.0, 0.0, 0.0);
   rotateMatrix.Set(1, 0.0, 0.0, 0.0);
   rotateMatrix.Set(2, 0.0, 0.0, 1.0);
-  atomNumber = kind.atoms.size();
+  atomNumber = kind.NumAtoms();
   multiPosRotions = new XYZArray[atomNumber];
 
   if(data->totalTrials < 1) {

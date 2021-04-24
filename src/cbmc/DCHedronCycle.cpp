@@ -58,12 +58,14 @@ namespace cbmc
 {
 
 
-DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
+DCHedronCycle::DCHedronCycle(DCData* data, const MoleculeKind& kind,
                              const std::vector<int> &cycAtoms, uint focus, uint prev)
   : data(data), focus(focus), prev(prev)
 {
   using namespace mol_setup;
-  std::vector<Bond> onFocus = AtomBonds(kind, focus);
+  //std::vector<Bond> onFocus = AtomBonds(kind, focus);
+  std::vector<Bond> onFocus;
+  kind.bondList.GetBondsOnAtom(onFocus, focus);
   onFocus.erase(remove_if(onFocus.begin(), onFocus.end(), FindA1(prev)),
                 onFocus.end());
   nBonds = onFocus.size();
@@ -71,8 +73,10 @@ DCHedronCycle::DCHedronCycle(DCData* data, const mol_setup::MolKind& kind,
   for (uint i = 0; i < nBonds; ++i) {
     bonded[i] = onFocus[i].a1;
   }
+  //std::vector<Angle> angles = AtomMidAngles(kind, focus);
 
-  std::vector<Angle> angles = AtomMidAngles(kind, focus);
+  std::vector<Angle> angles; 
+  kind.angles.GetAtomMidAngles(angles, focus);
   double sumAngle = 0.0;
   for (uint a = 0; a < angles.size(); a++) {
     sumAngle += data->ff.angles->Angle(angles[a].kind);

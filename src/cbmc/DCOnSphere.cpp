@@ -14,13 +14,15 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 namespace cbmc
 {
-DCOnSphere::DCOnSphere(DCData* data, const mol_setup::MolKind kind,
+DCOnSphere::DCOnSphere(DCData* data, const MoleculeKind& kind,
                        uint atom, uint focus) :
   data(data), atom(atom),
   focus(focus)
 {
   using namespace mol_setup;
-  std::vector<Bond> bonds = AtomBonds(kind, atom);
+  std::vector<Bond> bonds;
+  kind.bondList.GetBondsOnAtom(bonds, atom);
+  //std::vector<Bond> bonds = AtomBonds(kind, atom);
   for(uint i = 0; i < bonds.size(); ++i) {
     if(bonds[i].a0 == focus || bonds[i].a1 == focus) {
       bondKind = bonds[i].kind;
