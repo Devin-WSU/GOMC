@@ -225,6 +225,12 @@ private:
     ar & atomNames;
     ar & atomTypeNames;
     ar & resNames;
+    ar & isMultiResidue;
+    ar & intraMoleculeResIDs;
+
+#if ENSEMBLE == GCMC
+    ar &  chemPot;
+#endif
     if (Archive::is_loading::value)
     {
         assert(atomMass == nullptr);
@@ -232,12 +238,11 @@ private:
         assert(atomKind == nullptr);
         atomKind = new uint[numAtoms];
         assert(atomCharge == nullptr);
-        atomCharge = new double[numAtoms];        
+        atomCharge = new double[numAtoms];      
     }
     ar & boost::serialization::make_array<double>(atomMass, numAtoms);  
     ar & boost::serialization::make_array<uint>(atomKind, numAtoms);  
     ar & boost::serialization::make_array<double>(atomCharge, numAtoms);  
-    
     
   }
 };

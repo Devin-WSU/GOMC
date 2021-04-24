@@ -90,17 +90,19 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   {
     boost::archive::text_oarchive oa(ofs);
     // write class instance to archive
-    oa << molRef.kinds[0];
+    oa << molRef;
+    //oa << molRef.kinds[0];
     // close archive
     ofs.close();
 
     std::ifstream ifs("boost");
     if (ifs.good()) {
         boost::archive::text_iarchive ia(ifs);
-        MoleculeKind * test = new MoleculeKind();
+        //MoleculeKind * test = new MoleculeKind();
+        Molecules * test = new Molecules();
         ia >> *test;
-        test->builder = molRef.kinds[0].builder;
-        molRef.kinds[0] = *test;
+        //test->builder = molRef.kinds[0].builder;
+        //molRef.kinds[0] = *test;
         // close archive
         ifs.close();  
     } else {

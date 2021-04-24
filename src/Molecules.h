@@ -101,12 +101,10 @@ public:
   uint* kIndex;
   uint kIndexCount;
   uint* countByKind;
+  uint chainCount;
   char* chain;
 
   MoleculeKind * kinds;
-
-  cbmc::CBMC** builder;
-
 
   uint kindsCount;
   uint fractionKind, lambdaSize;
@@ -114,6 +112,45 @@ public:
   double* pairVirCorrections;
 
   bool printFlag;
+
+private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & count;
+    ar & chainCount;
+    ar & kIndexCount;
+    ar & kindsCount;
+    ar & fractionKind;
+    ar & lambdaSize; 
+    ar & printFlag; 
+
+    if (Archive::is_loading::value)
+    {
+        assert(start == nullptr);
+        start = new uint [count + 1];
+        assert(kIndex == nullptr);
+        kIndex = new uint[count];
+        assert(countByKind == nullptr);
+        countByKind = new uint[kindsCount];     
+        assert(chain == nullptr);
+        chain = new char[chainCount];   
+        assert(pairEnCorrections == nullptr);
+        pairEnCorrections = new double[kindsCount * kindsCount];    
+        assert(pairVirCorrections == nullptr);
+        pairVirCorrections = new double[kindsCount * kindsCount];   
+    }
+    ar & boost::serialization::make_array<uint>(start, count + 1);  
+    ar & boost::serialization::make_array<uint>(kIndex, count);  
+    ar & boost::serialization::make_array<uint>(countByKind, kindsCount);  
+    ar & boost::serialization::make_array<char>(chain, chainCount);  
+    ar & boost::serialization::make_array<double>(pairEnCorrections, kindsCount * kindsCount);  
+    ar & boost::serialization::make_array<double>(pairVirCorrections, kindsCount * kindsCount);  
+  }
 
 };
 
