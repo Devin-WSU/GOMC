@@ -238,6 +238,13 @@ void BondList::GetBondIndices(std::vector<uint> & bIndices, uint atom) const{
       bIndices.push_back(i);
 }
 
+void BondList::GetBondsOnAtom(std::vector<mol_setup::Bond> & bonds, uint atom) const{
+  for (int i = 0; i < count; ++i)
+    if ((part1[i] == atom )|| (part2[i] == atom))
+      bonds.push_back(mol_setup::Bond(part1[i], part2[i]));
+}
+
+
 GeomFeature::GeomFeature(uint atomsPer) : bondsPer(atomsPer - 1),
   bondIndices(NULL), kinds(NULL), count(0) {}
 
