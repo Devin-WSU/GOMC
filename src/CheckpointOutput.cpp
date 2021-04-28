@@ -103,8 +103,6 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
         mol_setup::MoleculeVariables test2;
         ia >> test;
         ia >> test2;
-        //test->builder = molRef.kinds[0].builder;
-        //molRef.kinds[0] = *test;
         // close archive
         ifs.close();  
     } else {
