@@ -37,14 +37,11 @@ struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
   std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, generatedSegmentNames;
   uint lastAtomIndexInBox0 = 0;
-  uint lastMolKindIndex = 0;
-  uint numberMolsInBox0 = 0;
-  uint molKindIndex = 0;
+  uint moleculeKindCounter = 0;
   uint stringSuffix = 0;
-  uint moleculeIteration = 0;
-  /* enableGenerateSegmentOut, enableSortedSegmentOut are for consistent trajectory order across restarts */
+  uint moleculeCounter = 0;
+  /* enableGenerateSegmentOut for consistent trajectory order across restarts */
   bool enableGenerateSegmentOut = false;
-  bool enableSortedSegmentOut = false;
   private:
   friend class boost::serialization::access;
   // When the class Archive corresponds to an output archive, the
@@ -57,8 +54,13 @@ struct MoleculeVariables {
     ar & moleculeKinds;
     ar & moleculeNames;
     ar & moleculeKindNames;
+    ar & moleculeSegmentNames;
+    ar & generatedSegmentNames;
     ar & lastAtomIndexInBox0;
-    ar & lastMolKindIndex; 
+    ar & moleculeKindCounter;
+    ar & stringSuffix;
+    ar & moleculeCounter;
+    ar & enableGenerateSegmentOut;
   }
 
 };

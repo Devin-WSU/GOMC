@@ -38,7 +38,6 @@ private:
   const Molecules* molecules;
   const MoleculeLookup & molLookRef;
   std::vector<mol_setup::MolKind> molKinds;
-  std::vector<std::string> molNames;
   uint totalAtoms;
   uint totalBonds;
   uint totalAngles;
@@ -71,6 +70,7 @@ private:
   FILE * outRebuildRestart[BOX_TOTAL];
   std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
+  const mol_setup::MoleculeVariables & molVarsRef;
 };
 
 #endif

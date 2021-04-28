@@ -253,9 +253,6 @@ int MolSetup::Init(const bool restartIn,
   /* Generate segment labels if this is the first time a simulation is called,
     and the user enabled restart output */
   molVars.enableGenerateSegmentOut = !restartIn && restartOut;
-  /* Sort the segments if the user states this is a restarted simulation since we
-      automatically generate segment labels when outputting restart files */
-  molVars.enableSortedSegmentOut = restartIn;
   return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
 }
 
@@ -360,7 +357,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.moleculeKinds.push_back((*kindMapFromBox1)[fragName].kindIndex);
             molVars.moleculeNames.push_back(fragName);
             if(molVars.enableGenerateSegmentOut)
-              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeCounter));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             /* Boilerplate PDB Data modifications for matches */
@@ -464,7 +461,7 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
             molVars.moleculeKinds.push_back(kindMap[*sizeConsistentEntries].kindIndex);
             molVars.moleculeNames.push_back(*sizeConsistentEntries);
             if(molVars.enableGenerateSegmentOut)
-              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+              molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeCounter));
             molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
             
             newMapEntry = false;
@@ -517,17 +514,17 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         }
         kindMap[fragName].firstAtomID = it->front() + 1;
         kindMap[fragName].firstMolID = allAtoms[it->front()].residueID;
-        kindMap[fragName].kindIndex = molVars.molKindIndex;
+        kindMap[fragName].kindIndex = molVars.moleculeKindCounter;
         molVars.startIdxMolecules.push_back(startIdxAtomBoxOffset + kindMap[fragName].firstAtomID - 1);
         molVars.moleculeKinds.push_back(kindMap[fragName].kindIndex);
         molVars.moleculeKindNames.push_back(fragName);
         molVars.moleculeNames.push_back(fragName);
         if(molVars.enableGenerateSegmentOut)
-          molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeIteration));
+          molVars.generatedSegmentNames.push_back(uniqueSuffixGenerator.uint2String(molVars.moleculeCounter));
         molVars.moleculeSegmentNames.push_back(allAtoms[it->front()].segment);
         
         MolSetup::copyBondInfoIntoMapEntry(bondAdjList, kindMap, fragName);
-        molVars.molKindIndex++;
+        molVars.moleculeKindCounter++;
         if (newSize){
           sizeMap[it->size()] = std::vector<std::string>{fragName};
         } else {
@@ -535,10 +532,9 @@ void createKindMap (mol_setup::MoleculeVariables & molVars,
         }
       }
     }
-    molVars.moleculeIteration++;
+    molVars.moleculeCounter++;
   }
   molVars.lastAtomIndexInBox0 = (moleculeXAtomIDY.back()).back();
-  molVars.numberMolsInBox0 = moleculeXAtomIDY.size();
 }
 
 typedef std::map<std::string, mol_setup::MolKind> MolMap;
