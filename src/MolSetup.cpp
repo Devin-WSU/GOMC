@@ -242,6 +242,24 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
 
   return 0;
 }
+
+int mol_setup::DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & molVars, 
+                                                          MolMap& kindMap)
+{
+  std::ifstream ifs("boost");
+  if (ifs.good()) {
+      boost::archive::text_iarchive ia(ifs);
+      ia >> molVars;
+      ia >> kindMap;
+      // close archive
+      ifs.close();
+      return 0;  
+  } else {
+    std::cout << "Error: Could not open boost file.\n";
+    return -1;
+  }
+}
+
 int MolSetup::Init(const bool restartIn,
                    const bool restartOut,
                    const std::string* psfFilename, 
@@ -252,8 +270,12 @@ int MolSetup::Init(const bool restartIn,
   sizeMap.clear();
   /* Generate segment labels if this is the first time a simulation is called,
     and the user enabled restart output */
-  molVars.enableGenerateSegmentOut = !restartIn && restartOut;
-  return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
+  if(restartIn){
+    return DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
+  } else {
+    molVars.enableGenerateSegmentOut = restartOut;
+    return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
+  }
 }
 
 

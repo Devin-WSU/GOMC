@@ -24,6 +24,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/assume_abstract.hpp>
 #include <boost/serialization/map.hpp>
+#include <boost/serialization/vector.hpp>
 #include "MolSetup.h"
 
 class CheckpointOutput : public OutputableBase

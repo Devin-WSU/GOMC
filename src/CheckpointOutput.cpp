@@ -89,26 +89,14 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   
     boost::archive::text_oarchive oa(ofs);
     // write class instance to archive
-    oa << molMapRef;
     oa << molVarsRef;
+    oa << molMapRef;
+
     // archive and stream closed when destructors are called
     // close archive
     ofs.close();
 
-    std::ifstream ifs("boost");
-    if (ifs.good()) {
-        boost::archive::text_iarchive ia(ifs);
-        //MoleculeKind * test = new MoleculeKind();
-        mol_setup::MolMap test;
-        mol_setup::MoleculeVariables test2;
-        ia >> test;
-        ia >> test2;
-        // close archive
-        ifs.close();  
-    } else {
-        // throw an error or something
-        assert(false);
-    }
+
 
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);

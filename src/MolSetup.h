@@ -16,9 +16,16 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "BondAdjacencyList.h"
 #include "AlphaNum.h"
 
+#include <boost/archive/tmpdir.hpp>
+
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
+#include <boost/serialization/assume_abstract.hpp>
+#include <boost/serialization/map.hpp>
 #include <boost/serialization/vector.hpp>
 
 namespace config_setup
@@ -273,6 +280,9 @@ int ReadCombinePSF(MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMa
 
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
+/* Deserialize MoleculeMap and MoleculeVariables */
+int DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & molVars, 
+                                               MolMap& kindMap);
 }
 
 //wrapper struct for consistent interface
