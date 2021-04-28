@@ -20,6 +20,7 @@ PDBOutput::PDBOutput(System  & sys, StaticVals const& statV) :
   boxDimRef(sys.boxDimRef), molRef(statV.mol), coordCurrRef(sys.coordinates),
   comCurrRef(sys.com), pStr(coordCurrRef.Count(), GetDefaultAtomStr())
 {
+  //sortedSegmentIndices = statV.mol.moleculeIndices;
   for(int i = 0; i < BOX_TOTAL; i++)
     frameNumber[i] = 0;
 }
@@ -94,24 +95,31 @@ void PDBOutput::Init(pdb_setup::Atoms const& atoms,
 
 void PDBOutput::InitPartVec()
 {
-  uint pStart = 0, pEnd = 0, molecule = 0;
+  uint pStart = 0, pEnd = 0, molecule = 0, atomIndex = 0, mI = 0, pI = 0;
   //Start particle numbering @ 1
   for (uint b = 0; b < BOX_TOTAL; ++b) {
     MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
                                  end = molLookupRef.BoxEnd(b);
     while (m != end) {
-      uint mI = *m;
+      mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[*m] : *m;
 
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
+        molecule = enableSortedSegmentOut ? molecule : mI;
+        pI = enableSortedSegmentOut ? atomIndex : p;
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+          FormatAtom(pStr[pI], pI, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], 
+                    molRef.chain[p],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         } else {
-          FormatAtom(pStr[p], p, molecule, molRef.chain[molRef.kIndex[mI]],
-                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
+          FormatAtom(pStr[pI], pI, molecule, 
+                    molRef.chain[p],
+                    molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], 
+                    molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         }
+        ++atomIndex;
       }
       ++m;
       ++molecule;
@@ -288,24 +296,27 @@ void PDBOutput::PrintAtoms(const uint b, std::vector<uint> & mBox)
   using namespace pdb_entry::atom::field;
   using namespace pdb_entry;
   bool inThisBox = false;
-  uint pStart = 0, pEnd = 0;
+  uint pStart = 0, pEnd = 0, atomIndex = 0, mI = 0, pI = 0;
   //Loop through all molecules
   for (uint m = 0; m < molRef.count; ++m) {
     //Loop through particles in mol.
-    uint beta = molLookupRef.GetBeta(m);
-    molRef.GetRangeStartStop(pStart, pEnd, m);
-    XYZ ref = comCurrRef.Get(m);
-    inThisBox = (mBox[m] == b);
+    mI = enableSortedSegmentOut ? molRef.sortedMoleculeIndices[m] : m;
+    uint beta = molLookupRef.GetBeta(mI);
+    molRef.GetRangeStartStop(pStart, pEnd, mI);
+    XYZ ref = comCurrRef.Get(mI);
+    inThisBox = (mBox[mI] == b);
     for (uint p = pStart; p < pEnd; ++p) {
+      pI = enableSortedSegmentOut ? atomIndex : p;
       XYZ coor;
       if (inThisBox) {
-        coor = coordCurrRef.Get(p);
+        coor = coordCurrRef.Get(pI);
         boxDimRef.UnwrapPBC(coor, b, ref);
       }
-      InsertAtomInLine(pStr[p], coor, occupancy::BOX[mBox[m]], beta::FIX[beta]);
+      InsertAtomInLine(pStr[pI], coor, occupancy::BOX[mBox[mI]], beta::FIX[beta]);
       //Write finished string out.
-      outF[b].file << pStr[p] << std::endl;
-    }
+      outF[b].file << pStr[pI] << std::endl;
+      ++atomIndex;
+    }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
   }
 }
 

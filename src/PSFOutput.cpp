@@ -37,7 +37,11 @@ const int dihPerLine = 2;
 PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
                      Setup & set) :
   molecules(&molecules), molLookRef(sys.molLookup),
-  molNames(set.mol.molVars.moleculeKindNames)
+  molNames(set.mol.molVars.moleculeKindNames), 
+  enableGenerateSegmentOut(molecules.enableGenerateSegmentOut),
+  enableSortedSegmentOut(molecules.enableSortedSegmentOut),
+  moleculeSegmentNames(set.mol.molVars.moleculeSegmentNames),
+  generatedSegmentNames(set.mol.molVars.generatedSegmentNames)
 {
   molKinds.resize(set.mol.kindMap.size());
  for(uint i = 0; i < set.mol.molVars.moleculeKindNames.size(); ++i) {
@@ -197,32 +201,36 @@ void PSFOutput::PrintAtoms(FILE* outfile) const
   //silly psfs index from 1
   uint atomID = 1;
   uint resID = 1;
+  uint thisKIndex = 0, nAtoms = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    uint thisKind = molecules->kIndex[mol];
-    uint nAtoms = molKinds[thisKind].atoms.size();
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
+    
+    nAtoms = molKinds[thisKIndex].atoms.size();
 
     for(uint at = 0; at < nAtoms; ++at) {
-      const Atom* thisAtom = &molKinds[thisKind].atoms[at];
+      const Atom* thisAtom = &molKinds[thisKIndex].atoms[at];
       //atom ID, segment name, residue ID, residue name,
       //atom name, atom type, charge, mass, and an unused 0
 
-      if(molKinds[thisKind].isMultiResidue){
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      } else {
-        fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
-                thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
-      }
+      if(molKinds[thisKIndex].isMultiResidue){
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI].c_str(),
+                  resID + molKinds[thisKIndex].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        } else {
+          fprintf(outfile, atomFormat, atomID, moleculeSegmentNames[mI].c_str(),
+                  resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
+                  thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
+        }
+      
       ++atomID;
     }
     /* This isn't actually residue, it is running count of the number of
       molecule kinds we have printed */
     ++resID;
     /* To add additional intramolecular residues */
-    if (molKinds[thisKind].isMultiResidue){
-      resID += molKinds[thisKind].intraMoleculeResIDs.back();
+    if (molKinds[thisKIndex].isMultiResidue){
+      resID += molKinds[thisKIndex].intraMoleculeResIDs.back();
     }
 
    // ???
@@ -237,8 +245,11 @@ void PSFOutput::PrintBonds(FILE* outfile) const
   fprintf(outfile, headerFormat, totalBonds, bondHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.bonds.size(); ++i) {
       fprintf(outfile, "%8d%8d", thisKind.bonds[i].a0 + atomID,
               thisKind.bonds[i].a1 + atomID);
@@ -258,8 +269,11 @@ void PSFOutput::PrintAngles(FILE* outfile) const
   fprintf(outfile, headerFormat, totalAngles, angleHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.angles.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d", thisKind.angles[i].a0 + atomID,
               thisKind.angles[i].a1 + atomID,
@@ -279,8 +293,11 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
   fprintf(outfile, headerFormat, totalDihs, dihedralHeader);
   uint atomID = 1;
   uint lineEntry = 0;
+  uint thisKIndex = 0, mI = 0;
   for(uint mol = 0; mol < molecules->count; ++mol) {
-    const MolKind& thisKind = molKinds[molecules->kIndex[mol]];
+    mI = enableSortedSegmentOut ? molecules->sortedMoleculeIndices[mol] : mol;
+    thisKIndex = molecules->kIndex[mI];
+    const MolKind& thisKind = molKinds[thisKIndex];
     for(uint i = 0; i < thisKind.dihedrals.size(); ++i) {
       fprintf(outfile, "%8d%8d%8d%8d", thisKind.dihedrals[i].a0 + atomID,
               thisKind.dihedrals[i].a1 + atomID,
@@ -333,11 +350,16 @@ void PSFOutput::PrintDihedrals(FILE* outfile) const
         //atom name, atom type, charge, mass, and an unused 0
 
         if(molKinds[thisKind].isMultiResidue){
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
-                  resID + molKinds[thisKind].intraMoleculeResIDs[at], thisAtom->residue.c_str(), thisAtom->name.c_str(),
+          fprintf(outfile, atomFormat, atomID, enableGenerateSegmentOut ? 
+                  generatedSegmentNames[*thisMol].c_str() : 
+                  moleculeSegmentNames[*thisMol].c_str(),
+                  resID + molKinds[thisKind].intraMoleculeResIDs[at], 
+                  thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         } else {
-          fprintf(outfile, atomFormat, atomID, thisAtom->segment.c_str(),
+          fprintf(outfile, atomFormat, atomID, enableGenerateSegmentOut ? 
+                  generatedSegmentNames[*thisMol].c_str() : 
+                  moleculeSegmentNames[*thisMol].c_str(),
                   resID, thisAtom->residue.c_str(), thisAtom->name.c_str(),
                   thisAtom->type.c_str(), thisAtom->charge, thisAtom->mass, 0);
         }

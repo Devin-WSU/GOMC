@@ -11,6 +11,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MolSetup.h"
 #include <map>
 #include <string>
+// For iota
+#include <numeric>
+// For custom sort 
+#include "AlphaNum.h"
+
 
 namespace pdb_setup
 {
@@ -78,6 +83,7 @@ public:
     _start = start[m];
     stop = start[m + 1];
   }
+
   void GetRangeStartLength(uint & _start, uint & len, const uint m) const
   {
     _start = start[m];
@@ -93,6 +99,8 @@ public:
                    std::vector<std::string> &names,
                    Forcefield & forcefield);
 
+  void SortMoleculesBySegment(std::vector<std::string> & unorderedSegments);
+
   //private:
   //Kind index of each molecule and start in master particle array
   //Plus counts
@@ -103,11 +111,19 @@ public:
   uint* countByKind;
   char* chain;
 
+
   MoleculeKind * kinds;
   uint kindsCount;
   uint fractionKind, lambdaSize;
   double* pairEnCorrections;
   double* pairVirCorrections;
+
+  /* For Hybrid MC-MD Order Consistency B/w cycles */
+  uint *  sortedMoleculeIndices;
+  /* Only used for testing purposes */
+  std::string * sortedMoleculeSegmentName;
+  bool enableSortedSegmentOut, enableGenerateSegmentOut;
+  bool generateSegmentName;
 
   bool printFlag;
 

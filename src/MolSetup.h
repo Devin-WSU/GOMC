@@ -14,6 +14,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <vector>
 #include <map>
 #include "BondAdjacencyList.h"
+#include "AlphaNum.h"
 
 #include <boost/serialization/base_object.hpp>
 #include <boost/serialization/utility.hpp>
@@ -34,9 +35,16 @@ namespace mol_setup
 {
 struct MoleculeVariables {
   std::vector<uint> startIdxMolecules, moleculeKinds;
-  std::vector<std::string> moleculeNames, moleculeKindNames;
+  std::vector<std::string> moleculeNames, moleculeKindNames, moleculeSegmentNames, generatedSegmentNames;
   uint lastAtomIndexInBox0 = 0;
   uint lastMolKindIndex = 0;
+  uint numberMolsInBox0 = 0;
+  uint molKindIndex = 0;
+  uint stringSuffix = 0;
+  uint moleculeIteration = 0;
+  /* enableGenerateSegmentOut, enableSortedSegmentOut are for consistent trajectory order across restarts */
+  bool enableGenerateSegmentOut = false;
+  bool enableSortedSegmentOut = false;
   private:
   friend class boost::serialization::access;
   // When the class Archive corresponds to an output archive, the
@@ -52,6 +60,7 @@ struct MoleculeVariables {
     ar & lastAtomIndexInBox0;
     ar & lastMolKindIndex; 
   }
+
 };
 
 //!structure to contain an atom's data during initialization
@@ -76,7 +85,9 @@ public:
   bool operator== (const Atom& atm) const
   {
     if (type == atm.type && 
-        charge == atm.charge)
+          charge == atm.charge && 
+            residue == atm.residue &&
+              mass == atm.mass)
       return true;
     else
       return false;
@@ -281,7 +292,8 @@ public:
 
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
-  int Init(const config_setup::RestartSettings& restart,
+  int Init(const bool restartIn,
+           const bool restartOut,
            const std::string* psfFilename, 
            const bool* psfDefined, 
            pdb_setup::Atoms& pdbAtoms);
