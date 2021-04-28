@@ -36,10 +36,10 @@ union int8_input_union {
 };
 }
 
-CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
+CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),
+  coordCurrRef(sys.coordinates), molMapRef(set.mol.kindMap), molVarsRef(set.mol.molVars),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTempering(sys.ms->parallelTemperingEnabled)
@@ -89,7 +89,7 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   {
     boost::archive::text_oarchive oa(ofs);
     // write class instance to archive
-    oa << molRef.kinds[0];
+    //oa << molRef.kinds[0];
   // archive and stream closed when destructors are called
   }
   std::cout << "Checkpoint saved to " << filename << std::endl;

@@ -23,12 +23,12 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <boost/serialization/utility.hpp>
 #include <boost/serialization/list.hpp>
 #include <boost/serialization/assume_abstract.hpp>
-
+#include "MolSetup.h"
 
 class CheckpointOutput : public OutputableBase
 {
 public:
-  CheckpointOutput(System & sys, StaticVals const& statV);
+  CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set);
 
   ~CheckpointOutput()
   {
@@ -49,6 +49,8 @@ private:
   Molecules const & molRef;
   PRNG & prngRef;
   Coordinates & coordCurrRef;
+  const mol_setup::MolMap & molMapRef;
+  const mol_setup::MoleculeVariables & molVarsRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
