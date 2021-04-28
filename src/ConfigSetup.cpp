@@ -129,7 +129,6 @@ ConfigSetup::ConfigSetup(void)
 #endif
   out.statistics.vars.density.block = false;
   out.statistics.vars.density.fluct = false;
-
 }
 
 int ConfigSetup::stringtoi(const std::string& s)
@@ -262,7 +261,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
         in.files.psf.name[boxnum] = line[2];
       }
       in.files.psf.defined[boxnum] = true;
-    /* Reference Order of Atoms In Trajectory File For Hybrid MC-MD */
     } else if(CheckString(line[0], "binCoordinates")) {
       uint boxnum = stringtoi(line[1]);
       if(boxnum >= BOX_TOTAL) {
