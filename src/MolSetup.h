@@ -15,6 +15,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <map>
 #include "BondAdjacencyList.h"
 
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
+
 namespace config_setup
 {
 struct RestartSettings;
@@ -32,6 +37,21 @@ struct MoleculeVariables {
   std::vector<std::string> moleculeNames, moleculeKindNames;
   uint lastAtomIndexInBox0 = 0;
   uint lastMolKindIndex = 0;
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & startIdxMolecules;
+    ar & moleculeKinds;
+    ar & moleculeNames;
+    ar & moleculeKindNames;
+    ar & lastAtomIndexInBox0;
+    ar & lastMolKindIndex; 
+  }
 };
 
 //!structure to contain an atom's data during initialization
@@ -41,7 +61,8 @@ public:
   Atom(std::string const& l_name, std::string const& l_residue, uint l_resID, std::string const& l_segment, std::string const& l_type,
        const double l_charge, const double l_mass) :
     name(l_name), type(l_type), residue(l_residue), segment(l_segment), charge(l_charge), mass(l_mass), residueID(l_resID) {}
-  //private:
+  /* For Boost Restoration */
+  Atom(){}  
   //name (within a molecule) and type (for forcefield params)
   std::string name, type, residue, segment;
   double charge, mass;
@@ -60,6 +81,23 @@ public:
     else
       return false;
   }
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & name;
+    ar & type;
+    ar & residue;
+    ar & segment;
+    ar & charge;
+    ar & mass; 
+    ar & residueID; 
+    ar & kind; 
+  }
 };
 
 class Dihedral
@@ -67,6 +105,8 @@ class Dihedral
 public:
   Dihedral(uint atom0, uint atom1, uint atom2, uint atom3)
     : a0(atom0), a1(atom1), a2(atom2), a3(atom3) {}
+  /* For Boost Restoration */
+  Dihedral(){}  
   //some xplor PSF files have duplicate dihedrals, we need to ignore these
   bool operator == (const Dihedral& other) const;
   bool operator != (const Dihedral& other) const;
@@ -75,6 +115,20 @@ public:
   //atoms
   uint a0, a1, a2, a3;
   uint kind;
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & a0;
+    ar & a1;
+    ar & a2;
+    ar & a3;
+    ar & kind;
+  }
 };
 
 class Angle
@@ -82,10 +136,24 @@ class Angle
 public:
   Angle(uint atom0, uint atom1, uint atom2)
     : a0(atom0), a1(atom1), a2(atom2) {}
-
+  /* For Boost Restoration */
+  Angle(){}  
   //private:
   uint a0, a1, a2;
   uint kind;
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & a0;
+    ar & a1;
+    ar & a2;
+    ar & kind;
+  }
 };
 
 class Bond
@@ -93,9 +161,23 @@ class Bond
 public:
   Bond(uint atom0, uint atom1)
     : a0(atom0), a1(atom1) {}
+  /* For Boost Restoration */
+  Bond(){}      
 //   private:
   uint a0, a1;
   uint kind;
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & a0;
+    ar & a1;
+    ar & kind;
+  }
 };
 
 //!Structure to contain a molecule kind's data during initialization
@@ -118,6 +200,29 @@ public:
   bool incomplete;
   bool isMultiResidue;
   std::vector<uint> intraMoleculeResIDs;
+  private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+    ar & atoms;
+    ar & bonds;
+    ar & angles;
+    ar & dihedrals;
+
+    ar & kindIndex;
+
+    //Used to search PSF file for geometry, meaningless after that
+    ar & firstAtomID;
+    ar & firstMolID;
+    //true while the molecule is still open for modification during PSF read
+    ar & incomplete;
+    ar & isMultiResidue;
+    ar & intraMoleculeResIDs;
+  }
 };
 
 //List of dihedrals with atom at one end, atom first
