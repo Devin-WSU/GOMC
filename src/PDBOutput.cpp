@@ -96,26 +96,20 @@ void PDBOutput::InitPartVec()
 {
   uint pStart = 0, pEnd = 0, molecule = 0;
   //Start particle numbering @ 1
-  for (uint b = 0; b < BOX_TOTAL; ++b) {
-    MoleculeLookup::box_iterator m = molLookupRef.BoxBegin(b),
-                                 end = molLookupRef.BoxEnd(b);
-    while (m != end) {
-      uint mI = *m;
-
+  for (int mI = 0; mI < molRef.count; ++mI) {
       molRef.GetRangeStartStop(pStart, pEnd, mI);
 
       for (uint p = pStart; p < pEnd; ++p) {
         if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
-          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[molRef.kIndex[mI]],
+          FormatAtom(pStr[p], p, molecule + molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs[p - pStart], molRef.chain[p],
                     molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         } else {
-          FormatAtom(pStr[p], p, molecule, molRef.chain[molRef.kIndex[mI]],
+          FormatAtom(pStr[p], p, molecule, molRef.chain[p],
                     molRef.kinds[molRef.kIndex[mI]].atomNames[p - pStart], molRef.kinds[molRef.kIndex[mI]].resNames[p - pStart]);
         }
       }
-      ++m;
+      /* molecule is resID, which can differ from mI in multiresidue molecules (e.g. proteins) */
       ++molecule;
-      /* If you want to keep orig resID's comment these out */
       if (molRef.kinds[molRef.kIndex[mI]].isMultiResidue){
         molecule += molRef.kinds[molRef.kIndex[mI]].intraMoleculeResIDs.back();
       }
@@ -123,7 +117,7 @@ void PDBOutput::InitPartVec()
       if(molecule == 9999)
         molecule = 0;
       /* If you want to keep orig resID's comment these out */
-    }
+    
   }
 }
 

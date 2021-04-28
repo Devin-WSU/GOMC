@@ -61,6 +61,18 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #else
   filename = file;
 #endif
+  // create and open a character archive for output
+  std::ofstream ofs("boost");
+  
+  // save data to archive
+  boost::archive::text_oarchive oa(ofs);
+  // write class instance to archive
+  oa << molVarsRef;
+  oa << molMapRef;
+
+  // archive and stream closed when destructors are called
+  // close archive
+  ofs.close();
 }
 
 void CheckpointOutput::DoOutput(const ulong step){}
@@ -81,23 +93,6 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   if(enableParallelTempering)
     printRandomNumbersParallelTempering();
 #endif
-
-   // create and open a character archive for output
-  std::ofstream ofs("boost");
-  
-  // save data to archive
-  
-    boost::archive::text_oarchive oa(ofs);
-    // write class instance to archive
-    oa << molVarsRef;
-    oa << molMapRef;
-
-    // archive and stream closed when destructors are called
-    // close archive
-    ofs.close();
-
-
-
   std::cout << "Checkpoint saved to " << filename << std::endl;
   GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
