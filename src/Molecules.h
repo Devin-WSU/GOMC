@@ -126,6 +126,7 @@ public:
   bool generateSegmentName;
 
   bool printFlag;
+
 };
 
 

@@ -115,6 +115,8 @@ struct BlockAverages : OutputableBase {
 
   virtual void Sample(const ulong step);
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
+
 
 private:
   void InitVals(config_setup::EventSettings const& event)

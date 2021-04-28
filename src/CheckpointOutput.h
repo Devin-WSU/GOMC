@@ -13,10 +13,23 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "GOMC_Config.h"
 
+
+#include <boost/archive/tmpdir.hpp>
+
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/archive/text_oarchive.hpp>
+
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/assume_abstract.hpp>
+#include <boost/serialization/map.hpp>
+#include "MolSetup.h"
+
 class CheckpointOutput : public OutputableBase
 {
 public:
-  CheckpointOutput(System & sys, StaticVals const& statV);
+  CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set);
 
   ~CheckpointOutput()
   {
@@ -25,19 +38,10 @@ public:
   }
 
   virtual void DoOutput(const ulong step);
+  virtual void DoOutputRestart(const ulong step);
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
-  virtual void Output(const ulong step)
-  {
-    if(!enableOutCheckpoint) {
-      return;
-    }
-
-    if((step + 1) % stepsPerCheckpoint == 0) {
-      DoOutput(step);
-    }
-  }
 
 private:
   MoveSettings & moveSetRef;
@@ -46,15 +50,15 @@ private:
   Molecules const & molRef;
   PRNG & prngRef;
   Coordinates & coordCurrRef;
+  const mol_setup::MolMap & molMapRef;
+  const mol_setup::MoleculeVariables & molVarsRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif
 
-  bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
-  ulong stepsPerCheckpoint;
   char gomc_version[5];
 
   void openOutputFile();

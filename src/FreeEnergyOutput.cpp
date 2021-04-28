@@ -109,6 +109,9 @@ void FreeEnergyOutput::DoOutput(const ulong step)
   }
 }
 
+void FreeEnergyOutput::DoOutputRestart(const ulong step)
+{}
+
 void FreeEnergyOutput::PrintData(const uint b, const uint step)
 {
   outF[b] << std::setw(11) << std::left << step << " ";

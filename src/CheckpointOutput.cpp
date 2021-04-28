@@ -36,10 +36,10 @@ union int8_input_union {
 };
 }
 
-CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
+CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
   boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
-  coordCurrRef(sys.coordinates),
+  coordCurrRef(sys.coordinates), molMapRef(set.mol.kindMap), molVarsRef(set.mol.molVars),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
   enableParallelTempering(sys.ms->parallelTemperingEnabled)
@@ -53,8 +53,8 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
-  enableOutCheckpoint = output.restart.settings.enable;
-  stepsPerCheckpoint = output.restart.settings.frequency;
+  enableRestOut = output.restart.settings.enable;
+  stepsRestPerOut = output.restart.settings.frequency;
   std::string file = output.statistics.settings.uniqueStr.val + "_restart.chk";
 #if GOMC_LIB_MPI
   filename = pathToReplicaOutputDirectory + file;
@@ -63,26 +63,55 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #endif
 }
 
-void CheckpointOutput::DoOutput(const ulong step)
+void CheckpointOutput::DoOutput(const ulong step){}
+
+void CheckpointOutput::DoOutputRestart(const ulong step)
 {
-  if(enableOutCheckpoint) {
-    GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-    std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-    openOutputFile();
-    printGOMCVersion();
-    printStepNumber(step);
-    printRandomNumbers();
-    printMoleculeLookupData();
-    printMoveSettingsData();
-    printMoleculesData();
+  GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
+  std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
+  openOutputFile();
+  printGOMCVersion();
+  printStepNumber(step);
+  printRandomNumbers();
+  printMoleculeLookupData();
+  printMoveSettingsData();
+  printMoleculesData();
 #if GOMC_LIB_MPI
-    printParallelTemperingBoolean();
-    if(enableParallelTempering)
-      printRandomNumbersParallelTempering();
+  printParallelTemperingBoolean();
+  if(enableParallelTempering)
+    printRandomNumbersParallelTempering();
 #endif
-    std::cout << "Checkpoint saved to " << filename << std::endl;
-    GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
-  }
+
+   // create and open a character archive for output
+  std::ofstream ofs("boost");
+  
+  // save data to archive
+  
+    boost::archive::text_oarchive oa(ofs);
+    // write class instance to archive
+    oa << molMapRef;
+    oa << molVarsRef;
+    // archive and stream closed when destructors are called
+    // close archive
+    ofs.close();
+
+    std::ifstream ifs("boost");
+    if (ifs.good()) {
+        boost::archive::text_iarchive ia(ifs);
+        //MoleculeKind * test = new MoleculeKind();
+        mol_setup::MolMap test;
+        mol_setup::MoleculeVariables test2;
+        ia >> test;
+        ia >> test2;
+        // close archive
+        ifs.close();  
+    } else {
+        // throw an error or something
+        assert(false);
+    }
+
+  std::cout << "Checkpoint saved to " << filename << std::endl;
+  GOMC_EVENT_STOP(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
 }
 
 void CheckpointOutput::setGOMCVersion()
