@@ -16,7 +16,6 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoleculeLookup.h"
 #include "OutputAbstracts.h"
 #include "Writer.h"
-#include "AlphaNum.h"
 
 class Molecules;
 
@@ -72,14 +71,6 @@ private:
   FILE * outRebuildRestart[BOX_TOTAL];
   std::string outFName;
   std::string outRebuildRestartFName[BOX_TOTAL];
-
-  bool enableRestOut, enableRestIn;
-  ulong stepsRestPerOut;
-  //NEW_RESTART_CODE
-  bool enableOutState, enableGenerateSegmentOut, enableSortedSegmentOut;
-
-  /* For Hybrid MC-MD Order Consistency B/w cycles */
-  std::vector<std::string> moleculeSegmentNames, generatedSegmentNames;
 };
 
 #endif
