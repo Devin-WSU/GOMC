@@ -371,16 +371,6 @@ void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
   molLookupRef.numKinds = this->numKinds;
 }
 
-void CheckpointSetup::SetMolecules(Molecules& mols)
-{
-  for(int i = 0; i < (int)this->molecules_startVec.size(); i++) {
-    mols.start[i] = molecules_startVec[i];
-  }
-  for(int i = 0; i < (int)this->molecules_kIndexVec.size(); i++) {
-    mols.kIndex[i] = molecules_kIndexVec[i];
-  }
-}
-
 void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 {
   moveSettings.scale = this->scaleVec;

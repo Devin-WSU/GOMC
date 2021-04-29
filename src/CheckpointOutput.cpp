@@ -87,7 +87,6 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   printRandomNumbers();
   printMoleculeLookupData();
   printMoveSettingsData();
-  printMoleculesData();
 #if GOMC_LIB_MPI
   printParallelTemperingBoolean();
   if(enableParallelTempering)

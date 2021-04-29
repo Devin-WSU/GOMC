@@ -37,7 +37,6 @@ public:
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
   void SetMoleculeLookup(MoleculeLookup & molLookupRef);
-  void SetMolecules(Molecules& mos);
   void SetMoveSettings(MoveSettings & moveSettings);
 
 private:
