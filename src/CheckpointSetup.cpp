@@ -355,22 +355,6 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
 }
 #endif
 
-void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
-{
-  if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
-    std::cerr << "ERROR: Restarting from checkpoint...\n"
-              << "molLookup size does not match with restart file\n";
-    exit(EXIT_FAILURE);
-  }
-  for(int i = 0; i < (int) this->molLookupVec.size(); i++) {
-    molLookupRef.molLookup[i] = this->molLookupVec[i];
-  }
-  for(int i = 0; i < (int) this->boxAndKindStartVec.size(); i++) {
-    molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
-  }
-  molLookupRef.numKinds = this->numKinds;
-}
-
 void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 {
   moveSettings.scale = this->scaleVec;

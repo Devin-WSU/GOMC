@@ -13,6 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Forcefield.h"
 #include <vector>
 
+#include <boost/serialization/base_object.hpp>
+#include <boost/serialization/utility.hpp>
+#include <boost/serialization/list.hpp>
+#include <boost/serialization/vector.hpp>
+
 class CheckpointOutput;
 
 namespace pdb_setup
@@ -175,14 +180,14 @@ uint GetConsensusMolBeta( const uint pStart,
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
   uint* molLookup;
-  uint molLookupCount;
+  uint molLookupCount, atomCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
   uint* boxAndKindStart;
   uint* boxAndKindSwappableCounts;
-  uint boxAndKindStartCount;
+  uint boxAndKindStartArraySize, boxAndKindSwappableArraySize;
   uint numKinds;
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
@@ -195,6 +200,54 @@ uint GetConsensusMolBeta( const uint pStart,
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
+private:
+  friend class boost::serialization::access;
+  // When the class Archive corresponds to an output archive, the
+  // & operator is defined similar to <<.  Likewise, when the class Archive
+  // is a type of input archive the & operator is defined similar to >>.
+  template<class Archive>
+  void serialize(Archive & ar, const unsigned int version)
+  {
+
+    ar & molLookupCount;
+    ar & molLookup;
+
+    ar & boxAndKindStartArraySize;
+    ar & boxAndKindStart;
+
+    ar & boxAndKindSwappableArraySize;   
+    ar & boxAndKindSwappableCounts;
+
+    ar & atomCount;
+    ar & molIndex; 
+    ar & atomIndex;
+    ar & molKind;
+    ar & atomKind;
+    ar & atomCharge;
+
+    if (Archive::is_loading::value)
+    {
+        assert(molIndex == nullptr);
+        molIndex = new int[atomCount];
+        assert(atomIndex == nullptr);
+        atomIndex = new int[atomCount];   
+        assert(molKind == nullptr);
+        molKind = new int[atomCount];
+        assert(atomKind == nullptr);
+        atomKind = new int[atomCount];
+        assert(atomCharge == nullptr);
+        atomCharge = new double[atomCount];  
+    }
+    ar & boost::serialization::make_array<int>(molIndex, atomCount);  
+    ar & boost::serialization::make_array<int>(atomIndex, atomCount);  
+    ar & boost::serialization::make_array<int>(molKind, atomCount);  
+    ar & boost::serialization::make_array<int>(atomKind, atomCount);  
+    ar & boost::serialization::make_array<double>(atomCharge, atomCount); 
+
+    ar & fixedMolecule;
+    ar & canSwapKind; //Kinds that can move intra and inter box
+    ar & canMoveKind;
+  }
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const

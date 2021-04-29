@@ -49,6 +49,9 @@ struct MoleculeVariables {
   uint moleculeCounter = 0;
   /* enableGenerateSegmentOut for consistent trajectory order across restarts */
   bool enableGenerateSegmentOut = false;
+
+  /* NOT FOR SERIALIZATION/DESERIALIZATION! This is what we used to map unsorted PDB/PSF data to serialized molecules */
+  std::vector< std::vector<uint> > sortedMoleculeIndices;
   private:
   friend class boost::serialization::access;
   // When the class Archive corresponds to an output archive, the
@@ -277,7 +280,8 @@ typedef std::map<std::size_t, std::vector<std::string> > SizeMap;
 */
 int ReadCombinePSF(MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
                    const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
-
+int OnlyScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms, const std::string* psfFilename,
+                   const bool* psfDefined);
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
 /* Deserialize MoleculeMap and MoleculeVariables */

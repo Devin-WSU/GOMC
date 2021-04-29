@@ -25,20 +25,23 @@ void MoleculeLookup::Init(const Molecules& mols,
 {
   numKinds = mols.GetKindsCount();
 
-  molLookup = new uint[mols.count];
   molLookupCount = mols.count;
+  molLookup = new uint[molLookupCount];
+  
+  atomCount = atomData.beta.size();
   // beta has same size as total number of atoms
-  molIndex = new int[atomData.beta.size()];
-  atomIndex = new int[atomData.beta.size()];
-  molKind = new int[atomData.beta.size()];
-  atomKind = new int[atomData.beta.size()];
-  atomCharge = new double[atomData.beta.size()];
+  molIndex = new int[atomCount];
+  atomIndex = new int[atomCount];
+  molKind = new int[atomCount];
+  atomKind = new int[atomCount];
+  atomCharge = new double[atomCount];
 
   //+1 to store end value
-  boxAndKindStart = new uint[numKinds * BOX_TOTAL + 1];
-  boxAndKindSwappableCounts = new uint[numKinds * BOX_TOTAL];
+  boxAndKindStartArraySize = numKinds * BOX_TOTAL + 1;
+  boxAndKindSwappableArraySize = numKinds * BOX_TOTAL;
 
-  boxAndKindStartCount = numKinds * BOX_TOTAL + 1;
+  boxAndKindStart = new uint[boxAndKindStartArraySize];
+  boxAndKindSwappableCounts = new uint[boxAndKindSwappableArraySize];
 
   // vector[box][kind] = list of mol indices for kind in box
   std::vector<std::vector<std::vector<uint> > > indexVector;

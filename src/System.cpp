@@ -104,12 +104,11 @@ void System::Init(Setup & set, ulong & startStep)
   moveSettings.Init(statV, set.pdb.remarks, molLookupRef.GetNumKind());
 
   // At this point see if checkpoint is enabled. if so re-initialize
-  // coordinates, prng, mollookup, step, boxdim, and movesettings
+  // coordinates, prng, step, boxdim, and movesettings
   if(set.config.in.restart.restartFromCheckpoint) {
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
-    checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
