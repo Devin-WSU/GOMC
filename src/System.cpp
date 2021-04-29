@@ -52,7 +52,8 @@ System::System(StaticVals& statics, Setup const& set,
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  calcEnergy(statics, *this), checkpointSet(*this, statics, set)
+  calcEnergy(statics, *this), checkpointSet(*this, statics, set),
+  xsc(set)
 {
   calcEwald = NULL;
 #if GOMC_LIB_MPI

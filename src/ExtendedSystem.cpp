@@ -13,7 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <stdlib.h> //for exit
 #include <string> // for to_string
 
-ExtendedSystem::ExtendedSystem()
+ExtendedSystem::ExtendedSystem(Setup const& set) : molVars(set.mol.molVars)
 {
   firstStep = 0;
   axis.Init(BOX_TOTAL);
@@ -42,13 +42,19 @@ void ExtendedSystem::Init(PDBSetup &pdb, config_setup::Input inputFiles, Molecul
     for(int b = 0; b < BOX_TOTAL; b++) {
       if(inputFiles.files.binaryInput.defined[b]) {
         std::string fName = inputFiles.files.binaryInput.name[b];
-        UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex);
+        UpdateCoordinate(pdb, fName.c_str(), b, molLookup, mols, cmIndex, inputFiles.restart.restartFromCheckpoint);
       }
     }
   }
 }
 
-void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const int box, MoleculeLookup & molLookup, Molecules & mols, int & cmIndex)
+void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, 
+                                      const char *filename, 
+                                      const int box, 
+                                      MoleculeLookup & molLookup, 
+                                      Molecules & mols, 
+                                      int & cmIndex,
+                                      bool restartFromCheckpoint)
 {
   // We must read restart PDB, which hold correct
   // number atom info in each Box
@@ -61,7 +67,18 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb, const char *filename, const
 
   for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
     if(moleculeOffset >= numAtoms) break;
-    int currentMolecule = molLookup.molLookup[cmIndex];
+    /* 
+       If we are continuing from Checkpoint, we load molLookup from file and rebuild molecules 
+       from a restorted molMap.
+       
+       The pdb and psf files will be out of agreement with these objects, but we stored the
+       mapping of each molecule into these objects in the segment column, which we can use
+       to lookup indices into these two objects, achieving consistency. 
+       
+       Otherwise, the molLookup and molecule objects were constructed from the pdb and psf files
+       and we can use the molLookup to get molecule indices. 
+    */ 
+    int currentMolecule = restartFromCheckpoint ? molVars.sortedMoleculeIndices[cmIndex] : molLookup.molLookup[cmIndex];
     int numberOfAtoms = mols.start[currentMolecule + 1] - mols.start[currentMolecule];
     int atomDestinationStart = mols.start[currentMolecule];
 
