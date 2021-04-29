@@ -280,8 +280,8 @@ typedef std::map<std::size_t, std::vector<std::string> > SizeMap;
 */
 int ReadCombinePSF(MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, const std::string* psfFilename,
                    const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
-int OnlyScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms, const std::string* psfFilename,
-                   const bool* psfDefined);
+int ScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms, const std::string* psfFilename,
+                   const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
 /* Deserialize MoleculeMap and MoleculeVariables */

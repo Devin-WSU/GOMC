@@ -62,7 +62,10 @@ void BriefDihKinds(MolKind& kind, const FFSetup& ffData);
 int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMap, MolMap * kindMapFromBox1 = NULL, SizeMap * sizeMapFromBox1 = NULL);
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars);
+int ReadPSFAtoms(FILE *, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms);
+/* For serialization.  We still need the segment info so we can sort the PDB data to match the original molecules */
+int OnlyReadPSFAtoms(std::vector<mol_setup::Atom> & allAtoms, const char* psfFilename);
+
 //adds bonds in psf to kindMap
 //pre: stream is before !BONDS   post: stream is in bond section just after
 //the first appearance of the last molecule
@@ -243,6 +246,29 @@ int mol_setup::ReadCombinePSF(MoleculeVariables & molVars,
   return 0;
 }
 
+int mol_setup::ScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms, 
+                                      const std::string* psfFilename,
+                                      const bool* psfDefined,
+                                      pdb_setup::Atoms& pdbAtoms)
+{
+  int errorcode = OnlyReadPSFAtoms(allAtoms, psfFilename[0].c_str());
+  if (errorcode < 0)
+    return errorcode;
+  if ((int) pdbAtoms.count != allAtoms.size() && BOX_TOTAL == 2 && psfDefined[1]) {    
+    errorcode = OnlyReadPSFAtoms(allAtoms, psfFilename[1].c_str());
+    if (errorcode < 0)
+      return errorcode;
+  }
+
+  if ((int) pdbAtoms.count != allAtoms.size()){
+    std::cout << "Error: This number of atoms in coordinate file(s) (PDB) " << pdbAtoms.count
+    << " does not match the number of atoms in structure file(s) (PSF) " << allAtoms.size() << "!" << std::endl;
+    exit(EXIT_FAILURE);
+  }
+
+  return 0;
+}
+
 int mol_setup::DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & molVars, 
                                                           MolMap& kindMap)
 {
@@ -271,6 +297,8 @@ int MolSetup::Init(const bool restartIn,
   /* Generate segment labels if this is the first time a simulation is called,
     and the user enabled restart output */
   if(restartIn){
+    std::vector<mol_setup::Atom> allAtoms;
+    ScanAtomsForSegmentInfo(allAtoms, psfFilename, psfDefined, pdbAtoms);
     return DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
   } else {
     molVars.enableGenerateSegmentOut = restartOut;
@@ -870,7 +898,7 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
   bonds before atoms without physically generating a new PSFFile reversing the order of ATOMS <-> BONDS.
   Hence, the necessity to build this vector before knowing how the atoms are connected. */
   std::vector<mol_setup::Atom> allAtoms;
-  ReadPSFAtoms(psf, nAtoms, allAtoms, molVars);
+  ReadPSFAtoms(psf, nAtoms, allAtoms);
   //build list of start particles for each type, so we can find it and skip
   //everything else
   //make sure molecule has bonds, appears before !NBOND
@@ -979,9 +1007,36 @@ int ReadPSF(const char* psfFilename, MoleculeVariables & molVars, MolMap& kindMa
   return nAtoms;
 }
 
+int OnlyReadPSFAtoms(std::vector<mol_setup::Atom> & allAtoms, const char* psfFilename)
+{
+  FILE* psf = fopen(psfFilename, "r");
+  char* check;        //return value of fgets
+  int count;        //for number of bonds/angles/dihs
+  if (psf == NULL) {
+    fprintf(stderr, "ERROR: Failed to open PSF file %s for molecule data.\nExiting...\n", psfFilename);
+    return errors::READ_ERROR;
+  }
+  char input[512];
+  unsigned int nAtoms;
+  //find atom header+count
+  do {
+    check = fgets(input, 511, psf);
+    if (check == NULL) {
+      fprintf(stderr, "ERROR: Unable to read atoms from PSF file %s",
+              psfFilename);
+      fclose(psf);
+      return errors::READ_ERROR;
+    }
+  } while (strstr(input, "!NATOM") == NULL);
+  sscanf(input, " %u", &nAtoms);
+  int result = ReadPSFAtoms(psf, nAtoms, allAtoms);
+  fclose(psf);
+  return result;
+}
+
 //adds atoms and molecule data in psf to kindMap
 //pre: stream is at !NATOMS   post: stream is at end of atom section
-int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars)
+int ReadPSFAtoms(FILE *psf, unsigned int nAtoms, std::vector<mol_setup::Atom> & allAtoms)
 {
   char input[512];
   unsigned int atomID = 0;
