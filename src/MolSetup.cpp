@@ -269,9 +269,19 @@ int mol_setup::ScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms,
   return 0;
 }
 
-int mol_setup::createSortedSegmentIndices(std::vector<mol_setup::Atom> & allAtoms,
+int mol_setup::CreateSortedSegmentIndices(std::vector<mol_setup::Atom> & allAtoms,
                                           MoleculeVariables & molVars){
-
+  AlphaNum uniqueSuffixGenerator;
+  std::string segment = allAtoms.front().segment;
+  molVars.sortedMoleculeIndices.push_back(uniqueSuffixGenerator.string2Uint(segment));
+  typedef std::vector<mol_setup::Atom>::const_iterator atomIterator;
+  for (atomIterator it = allAtoms.cbegin(); it != allAtoms.cend(); ++it){
+    if (it->segment != segment){
+      segment = it->segment;
+      molVars.sortedMoleculeIndices.push_back(uniqueSuffixGenerator.string2Uint(segment));
+    }
+  }
+  return 0;
 }
 
 
@@ -306,7 +316,7 @@ int MolSetup::Init(const bool restartIn,
     std::vector<mol_setup::Atom> allAtoms;
     ScanAtomsForSegmentInfo(allAtoms, psfFilename, psfDefined, pdbAtoms);
     int result = DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
-    createSortedSegmentIndices(allAtoms, molVars);
+    CreateSortedSegmentIndices(allAtoms, molVars);
     return result;
   } else {
     molVars.enableGenerateSegmentOut = restartOut;
