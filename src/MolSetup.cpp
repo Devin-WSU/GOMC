@@ -269,6 +269,12 @@ int mol_setup::ScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms,
   return 0;
 }
 
+int mol_setup::createSortedSegmentIndices(std::vector<mol_setup::Atom> & allAtoms,
+                                          MoleculeVariables & molVars){
+
+}
+
+
 int mol_setup::DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & molVars, 
                                                           MolMap& kindMap)
 {
@@ -299,7 +305,9 @@ int MolSetup::Init(const bool restartIn,
   if(restartIn){
     std::vector<mol_setup::Atom> allAtoms;
     ScanAtomsForSegmentInfo(allAtoms, psfFilename, psfDefined, pdbAtoms);
-    return DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
+    int result = DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
+    createSortedSegmentIndices(allAtoms, molVars);
+    return result;
   } else {
     molVars.enableGenerateSegmentOut = restartOut;
     return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
