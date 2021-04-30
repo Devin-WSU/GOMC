@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 class CheckpointSetup
 {
 public:
-  CheckpointSetup(System & sys, StaticVals const& statV, Setup const& set);
+  CheckpointSetup(System & sys, Setup const& set);
 
   ~CheckpointSetup()
   {
@@ -36,13 +36,13 @@ public:
 #if GOMC_LIB_MPI
   void SetPRNGVariablesPT(PRNG & prng);
 #endif
+  void SetMoleculeLookup(MoleculeLookup & molLookupRef);
   void SetMoveSettings(MoveSettings & moveSettings);
 
 private:
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
-  Molecules const & molRef;
   Coordinates & coordCurrRef;
   PRNG & prngRef;
 
@@ -57,8 +57,12 @@ private:
   uint32_t totalBoxes;
   uint32_t* saveArray;
   uint32_t seedLocation, seedLeft, seedValue;
-  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, fixedMoleculeVec;
+
+  /* mol lookup */
+  std::vector<uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCounts, fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
   uint32_t numKinds;
+
+
   std::vector<std::vector<std::vector<double> > > scaleVec, acceptPercentVec;
   std::vector<std::vector<std::vector<uint32_t> > > acceptedVec, triesVec, tempAcceptedVec,
       tempTriesVec;
@@ -66,9 +70,6 @@ private:
   std::vector< double > mp_r_maxVec;
   std::vector< double > mp_t_maxVec;
 
-  // molecules data
-  std::vector< uint > molecules_startVec;
-  std::vector< uint > molecules_kIndexVec;
 
   // private functions used by ReadAll and Get functions
   void readGOMCVersion();
@@ -84,7 +85,6 @@ private:
 #endif
   void readMoleculeLookupData();
   void readMoveSettingsData();
-  void readMoleculesData();
   void closeInputFile();
 
   void readVector3DDouble(std::vector< std::vector< std::vector <double> > > & data);

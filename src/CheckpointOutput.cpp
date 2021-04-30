@@ -36,9 +36,9 @@ union int8_input_union {
 };
 }
 
-CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set) :
+CheckpointOutput::CheckpointOutput(System & sys, Setup const& set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef),  molRef(statV.mol), prngRef(sys.prng),
+  boxDimRef(sys.boxDimRef),  prngRef(sys.prng),
   coordCurrRef(sys.coordinates), molMapRef(set.mol.kindMap), molVarsRef(set.mol.molVars),
 #if GOMC_LIB_MPI
   prngPTRef(*sys.prngParallelTemp),
@@ -85,6 +85,7 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
   printGOMCVersion();
   printStepNumber(step);
   printRandomNumbers();
+  printMoleculeLookupData();
   printMoveSettingsData();
 #if GOMC_LIB_MPI
   printParallelTemperingBoolean();
@@ -174,6 +175,54 @@ void CheckpointOutput::printRandomNumbersParallelTempering()
   write_uint32_binary(prngPTRef.GetGenerator()->seedValue);
 }
 #endif
+
+void CheckpointOutput::printMoleculeLookupData()
+{
+  // print the size of molLookup array
+  write_uint32_binary(molLookupRef.molLookupCount);
+  // print the molLookup array itself
+  for(int i = 0; i < molLookupRef.molLookupCount; i++) {
+    write_uint32_binary(molLookupRef.molLookup[i]);
+  }
+
+  // print the size of boxAndKindStart array
+  write_uint32_binary(molLookupRef.boxAndKindStartArraySize);
+  // print the BoxAndKindStart array
+  for(int i = 0; i < molLookupRef.boxAndKindStartArraySize; i++) {
+    write_uint32_binary(molLookupRef.boxAndKindStart[i]);
+  }
+
+  // print the size of boxAndKindStart array
+  write_uint32_binary(molLookupRef.boxAndKindSwappableArraySize);
+  // print the BoxAndKindStart array
+  for(int i = 0; i < molLookupRef.boxAndKindSwappableArraySize; i++) {
+    write_uint32_binary(molLookupRef.boxAndKindSwappableCounts[i]);
+  }
+
+  // print numKinds
+  write_uint32_binary(molLookupRef.numKinds);
+
+  //print the size of fixedAtom array
+  write_uint32_binary((uint)molLookupRef.fixedMolecule.size());
+  //print the fixedAtom array itself
+  for(int i = 0; i < molLookupRef.fixedMolecule.size(); i++) {
+    write_uint32_binary(molLookupRef.fixedMolecule[i]);
+  }
+
+  //print the size of canSwapKind array
+  write_uint32_binary((uint)molLookupRef.canSwapKind.size());
+  //print the fixedAtom array itself
+  for(int i = 0; i < molLookupRef.canSwapKind.size(); i++) {
+    write_uint32_binary(molLookupRef.canSwapKind[i]);
+  }
+
+  //print the size of canMoveKind array
+  write_uint32_binary((uint)molLookupRef.canMoveKind.size());
+  //print the fixedAtom array itself
+  for(int i = 0; i < molLookupRef.canMoveKind.size(); i++) {
+    write_uint32_binary(molLookupRef.canMoveKind[i]);
+  }
+}
 
 void CheckpointOutput::printMoveSettingsData()
 {

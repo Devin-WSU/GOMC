@@ -200,6 +200,7 @@ uint GetConsensusMolBeta( const uint pStart,
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
+  /*
 private:
   friend class boost::serialization::access;
   // When the class Archive corresponds to an output archive, the
@@ -248,6 +249,7 @@ private:
     ar & canSwapKind; //Kinds that can move intra and inter box
     ar & canMoveKind;
   }
+  */
 };
 
 inline uint MoleculeLookup::NumKindInBox(const uint kind, const uint box) const

@@ -12,26 +12,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 #include "GOMC_Config.h"
-
-
-#include <boost/archive/tmpdir.hpp>
-
-#include <boost/archive/text_iarchive.hpp>
-#include <boost/archive/text_oarchive.hpp>
-
-#include <boost/serialization/base_object.hpp>
-#include <boost/serialization/utility.hpp>
-#include <boost/serialization/list.hpp>
-#include <boost/serialization/assume_abstract.hpp>
-#include <boost/serialization/map.hpp>
-#include <boost/serialization/vector.hpp>
 #include "MolSetup.h"
-
 class CheckpointOutput : public OutputableBase
 {
 public:
-  CheckpointOutput(System & sys, StaticVals const& statV, Setup const& set);
-
+  CheckpointOutput(System & sys, Setup const& set);
   ~CheckpointOutput()
   {
     if(outputFile)
@@ -39,16 +24,16 @@ public:
   }
 
   virtual void DoOutput(const ulong step);
-  virtual void DoOutputRestart(const ulong step);
+  virtual void DoOutputRestart(const ulong step);  
   virtual void Init(pdb_setup::Atoms const& atoms,
                     config_setup::Output const& output);
   virtual void Sample(const ulong step) {}
+
 
 private:
   MoveSettings & moveSetRef;
   MoleculeLookup & molLookupRef;
   BoxDimensions & boxDimRef;
-  Molecules const & molRef;
   PRNG & prngRef;
   Coordinates & coordCurrRef;
   const mol_setup::MolMap & molMapRef;
@@ -57,9 +42,11 @@ private:
   PRNG & prngPTRef;
 #endif
 
+  bool enableOutCheckpoint;
   bool enableParallelTempering;
   std::string filename;
   FILE* outputFile;
+  ulong stepsPerCheckpoint;
   char gomc_version[5];
 
   void openOutputFile();
@@ -71,8 +58,8 @@ private:
 #if GOMC_LIB_MPI
   void printRandomNumbersParallelTempering();
 #endif
+  void printMoleculeLookupData();
   void printMoveSettingsData();
-
 
   void printVector3DDouble(const std::vector< std::vector< std::vector<double> > > &data);
   void printVector3DUint(const std::vector< std::vector< std::vector<uint> > > &data);

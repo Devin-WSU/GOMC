@@ -35,10 +35,9 @@ union int8_input_union {
 };
 }
 
-CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
-                                 Setup const& set) :
+CheckpointSetup::CheckpointSetup(System & sys, Setup const& set) :
   moveSetRef(sys.moveSettings), molLookupRef(sys.molLookupRef),
-  boxDimRef(sys.boxDimRef),  molRef(statV.mol), coordCurrRef(sys.coordinates),
+  boxDimRef(sys.boxDimRef),  coordCurrRef(sys.coordinates),
   prngRef(sys.prng), parallelTemperingWasEnabled(false)
 {
   std::string file = set.config.in.files.checkpoint.name[0];
@@ -59,7 +58,6 @@ void CheckpointSetup::ReadAll()
   readRandomNumbers();
   readMoleculeLookupData();
   readMoveSettingsData();
-  readMoleculesData();
 #if GOMC_LIB_MPI
   readParallelTemperingBoolean();
   if(parallelTemperingWasEnabled)
@@ -172,31 +170,39 @@ void CheckpointSetup::readMoleculeLookupData()
     boxAndKindStartVec[i] = read_uint32_binary();
   }
 
+  // read the size of boxAndKindSwappableCounts array
+  boxAndKindSwappableCounts.resize(read_uint32_binary());
+  // read the BoxAndKindStart array
+  for(int i = 0; i < (int) boxAndKindSwappableCounts.size(); i++) {
+    boxAndKindSwappableCounts[i] = read_uint32_binary();
+  }
+
   // read numKinds
   numKinds = read_uint32_binary();
+
+
   //read the size of fixedMolecule array
   fixedMoleculeVec.resize(read_uint32_binary());
   //read the fixedMolecule array itself
   for(int i = 0; i < (int) fixedMoleculeVec.size(); i++) {
     fixedMoleculeVec[i] = read_uint32_binary();
   }
-}
 
-void CheckpointSetup::readMoleculesData()
-{
-  // read the size of start array
-  uint startCount = read_uint32_binary() + 1;
-  molecules_startVec.resize(startCount);
-  for(int i = 0; i < (int)startCount; i++) {
-    molecules_startVec[i] = read_uint32_binary();
+  //read the size of fixedMolecule array
+  canSwapKindVec.resize(read_uint32_binary());
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) canSwapKindVec.size(); i++) {
+    canSwapKindVec[i] = read_uint32_binary();
   }
 
-  // read the kIndex array
-  molecules_kIndexVec.resize(read_uint32_binary());
-  for(int i = 0; i < (int) molecules_kIndexVec.size(); i++) {
-    molecules_kIndexVec[i] = read_uint32_binary();
+  //read the size of fixedMolecule array
+  canMoveKindVec.resize(read_uint32_binary());
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) canMoveKindVec.size(); i++) {
+    canMoveKindVec[i] = read_uint32_binary();
   }
 }
+
 
 void CheckpointSetup::readMoveSettingsData()
 {
@@ -354,6 +360,30 @@ void CheckpointSetup::SetPRNGVariablesPT(PRNG & prng)
   prng.GetGenerator()->seedValue = seedValuePT;
 }
 #endif
+
+void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
+{
+  if(molLookupRef.molLookupCount != this->molLookupVec.size()) {
+    std::cerr << "ERROR: Restarting from checkpoint...\n"
+              << "molLookup size does not match with restart file\n";
+    exit(EXIT_FAILURE);
+  }
+  for(int i = 0; i < (int) this->molLookupVec.size(); i++) {
+    molLookupRef.molLookup[i] = this->molLookupVec[i];
+  }
+  for(int i = 0; i < (int) this->boxAndKindStartVec.size(); i++) {
+    molLookupRef.boxAndKindStart[i] = this->boxAndKindStartVec[i];
+  }
+  for(int i = 0; i < (int) this->boxAndKindSwappableCounts.size(); i++) {
+    molLookupRef.boxAndKindSwappableCounts[i] = this->boxAndKindSwappableCounts[i];
+  }
+
+  molLookupRef.fixedMolecule = fixedMoleculeVec;
+  molLookupRef.canSwapKind = canSwapKindVec;
+  molLookupRef.canMoveKind = canMoveKindVec;
+
+  molLookupRef.numKinds = this->numKinds;
+}
 
 void CheckpointSetup::SetMoveSettings(MoveSettings & moveSettings)
 {

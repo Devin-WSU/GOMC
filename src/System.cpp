@@ -52,7 +52,7 @@ System::System(StaticVals& statics, Setup const& set,
   moveSettings(boxDimRef), cellList(statics.mol, boxDimRef),
   coordinates(boxDimRef, com, molLookupRef, prng, statics.mol),
   com(boxDimRef, coordinates, molLookupRef, statics.mol),
-  calcEnergy(statics, *this), checkpointSet(*this, statics, set),
+  calcEnergy(statics, *this), checkpointSet(*this, set),
   xsc(set)
 {
   calcEwald = NULL;
@@ -110,6 +110,7 @@ void System::Init(Setup & set, ulong & startStep)
     checkpointSet.ReadAll();
     checkpointSet.SetStepNumber(startStep);
     checkpointSet.SetPRNGVariables(prng);
+    checkpointSet.SetMoleculeLookup(molLookupRef);
     checkpointSet.SetMoveSettings(moveSettings);
 #if GOMC_LIB_MPI
     if(checkpointSet.CheckIfParallelTemperingWasEnabled() && ms->parallelTemperingEnabled)
