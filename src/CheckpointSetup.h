@@ -59,7 +59,10 @@ private:
   uint32_t seedLocation, seedLeft, seedValue;
 
   /* mol lookup */
+  uint32_t atomCount;
   std::vector<uint32_t> molLookupVec, boxAndKindStartVec, boxAndKindSwappableCounts, fixedMoleculeVec, canSwapKindVec, canMoveKindVec;
+  std::vector<uint32_t>  molIndexVec, atomIndexVec, molKindVec, atomKindVec;
+  std::vector<double> atomChargeVec;
   uint32_t numKinds;
 
 

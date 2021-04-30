@@ -222,6 +222,29 @@ void CheckpointOutput::printMoleculeLookupData()
   for(int i = 0; i < molLookupRef.canMoveKind.size(); i++) {
     write_uint32_binary(molLookupRef.canMoveKind[i]);
   }
+
+  //print the size of atom arrays
+  write_uint32_binary(molLookupRef.atomCount);
+  //print the atomCharge array itself
+  for(int i = 0; i < molLookupRef.atomCount; i++) {
+    write_uint32_binary((uint)molLookupRef.molIndex[i]);
+  }
+  //print the atomCharge array itself
+  for(int i = 0; i < molLookupRef.atomCount; i++) {
+    write_uint32_binary((uint)molLookupRef.atomIndex[i]);
+  }
+   //print the atomCharge array itself
+  for(int i = 0; i < molLookupRef.atomCount; i++) {
+    write_uint32_binary((uint)molLookupRef.molKind[i]);
+  }
+    //print the atomCharge array itself
+  for(int i = 0; i < molLookupRef.atomCount; i++) {
+    write_uint32_binary((uint)molLookupRef.atomKind[i]);
+  }
+  //print the atomCharge array itself
+  for(int i = 0; i < molLookupRef.atomCount; i++) {
+    write_double_binary(molLookupRef.atomCharge[i]);
+  }
 }
 
 void CheckpointOutput::printMoveSettingsData()

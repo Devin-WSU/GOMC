@@ -201,6 +201,43 @@ void CheckpointSetup::readMoleculeLookupData()
   for(int i = 0; i < (int) canMoveKindVec.size(); i++) {
     canMoveKindVec[i] = read_uint32_binary();
   }
+
+  atomCount = read_uint32_binary();
+
+  //read the size of fixedMolecule array
+  molIndexVec.resize(atomCount);
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) molIndexVec.size(); i++) {
+    molIndexVec[i] = read_uint32_binary();
+  }
+
+  //read the size of fixedMolecule array
+  atomIndexVec.resize(atomCount);
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) atomIndexVec.size(); i++) {
+    atomIndexVec[i] = read_uint32_binary();
+  }
+
+    //read the size of fixedMolecule array
+  molKindVec.resize(atomCount);
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) molKindVec.size(); i++) {
+    molKindVec[i] = read_uint32_binary();
+  }
+
+    //read the size of fixedMolecule array
+  atomKindVec.resize(atomCount);
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) atomKindVec.size(); i++) {
+    atomKindVec[i] = read_uint32_binary();
+  }
+  
+  //read the size of fixedMolecule array
+  atomChargeVec.resize(atomCount);
+  //read the fixedMolecule array itself
+  for(int i = 0; i < (int) atomChargeVec.size(); i++) {
+    atomChargeVec[i] = read_uint32_binary();
+  }
 }
 
 
@@ -381,6 +418,14 @@ void CheckpointSetup::SetMoleculeLookup(MoleculeLookup & molLookupRef)
   molLookupRef.fixedMolecule = fixedMoleculeVec;
   molLookupRef.canSwapKind = canSwapKindVec;
   molLookupRef.canMoveKind = canMoveKindVec;
+
+  for(int i = 0; i < (int) this->atomCount; i++) {
+    molLookupRef.molIndex[i] = (int)this->molIndexVec[i];
+    molLookupRef.atomIndex[i] = (int)this->atomIndexVec[i];
+    molLookupRef.molKind[i] = (int)this->molKindVec[i];
+    molLookupRef.atomKind[i] = (int)this->atomKindVec[i];
+    molLookupRef.atomCharge[i] = this->atomChargeVec[i];
+  }
 
   molLookupRef.numKinds = this->numKinds;
 }
