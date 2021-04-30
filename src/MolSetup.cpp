@@ -302,25 +302,22 @@ int mol_setup::DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & mo
   }
 }
 
-int MolSetup::Init(const bool restartIn,
-                   const bool restartOut,
-                   const std::string* psfFilename, 
-                   const bool* psfDefined, 
+int MolSetup::Init(ConfigSetup & config, 
                    pdb_setup::Atoms& pdbAtoms)
 {
   kindMap.clear();
   sizeMap.clear();
   /* Generate segment labels if this is the first time a simulation is called,
     and the user enabled restart output */
-  if(restartIn){
+  if(config.in.restart.restartFromCheckpoint){
     std::vector<mol_setup::Atom> allAtoms;
-    ScanAtomsForSegmentInfo(allAtoms, psfFilename, psfDefined, pdbAtoms);
+    ScanAtomsForSegmentInfo(allAtoms, config.in.files.psf.name, config.in.files.psf.defined, pdbAtoms);
     int result = DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
     CreateSortedSegmentIndices(allAtoms, molVars);
     return result;
   } else {
-    molVars.enableGenerateSegmentOut = restartOut;
-    return ReadCombinePSF(molVars, kindMap, sizeMap, psfFilename, psfDefined, pdbAtoms);
+    molVars.enableGenerateSegmentOut = config.out.restart.settings.enable;
+    return ReadCombinePSF(molVars, kindMap, sizeMap, config.in.files.psf.name, config.in.files.psf.defined, pdbAtoms);
   }
 }
 

@@ -9,6 +9,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include "BasicTypes.h"
 #include "EnsemblePreprocessor.h"
+#include "ConfigSetup.h"
 
 #include <string>
 #include <vector>
@@ -309,10 +310,7 @@ public:
 
   //reads BoxTotal PSFs and merges the data, placing the results in kindMap
   //returns 0 if read is successful, -1 on a failure
-  int Init(const bool restartIn,
-           const bool restartOut,
-           const std::string* psfFilename, 
-           const bool* psfDefined, 
+  int Init(ConfigSetup & config, 
            pdb_setup::Atoms& pdbAtoms);
 
   void AssignKinds(const mol_setup::MoleculeVariables& molVars, const FFSetup& ffData);
