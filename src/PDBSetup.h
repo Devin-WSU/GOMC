@@ -94,6 +94,19 @@ public:
         numAtomsInBox[b] = 0;
       }
     }
+  Atoms(const Atoms &obj) : restart(obj.restart), currBox(obj.currBox), count(obj.count), recalcTrajectory(obj.recalcTrajectory)
+  {
+    for (int b = 0; b < BOX_TOTAL; b++) {
+      numAtomsInBox[b] = obj.numAtomsInBox[b];
+    }
+    chainLetter = obj.chainLetter;
+    x = obj.x;
+    y = obj.y;
+    z = obj.z;
+    beta = obj.beta;
+    box = obj.box;
+    resNames = obj.resNames;
+  }
   void SetRestart(config_setup::RestartSettings const& r);
   void SetBox(const uint b)
   {

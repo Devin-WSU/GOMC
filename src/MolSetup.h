@@ -284,6 +284,7 @@ int ReadCombinePSF(MoleculeVariables & molVars, MolMap& kindMap, SizeMap& sizeMa
 int ScanAtomsForSegmentInfo(std::vector<mol_setup::Atom> & allAtoms, const std::string* psfFilename,
                    const bool* psfDefined, pdb_setup::Atoms& pdbAtoms);
 int CreateSortedSegmentIndices(std::vector<mol_setup::Atom> & allAtoms, MoleculeVariables & molVars);
+int SortPDBAtoms(pdb_setup::Atoms& pdbAtoms, MoleculeVariables & molVars);
 void PrintMolMapVerbose(const MolMap& kindMap);
 void PrintMolMapBrief(const MolMap& kindMap);
 /* Deserialize MoleculeMap and MoleculeVariables */

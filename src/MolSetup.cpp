@@ -284,6 +284,28 @@ int mol_setup::CreateSortedSegmentIndices(std::vector<mol_setup::Atom> & allAtom
   return 0;
 }
 
+int mol_setup::SortPDBAtoms(pdb_setup::Atoms& pdbAtoms, MoleculeVariables & molVars){
+  pdb_setup::Atoms pdbAtomsCopy(pdbAtoms);
+  int mI = 0, moleculeOffset = 0, numberOfAtoms = 0, atomDestinationStart = 0;
+  for(uint mol = 0; mol < molVars.moleculeCounter; ++mol) {
+    mI = molVars.sortedMoleculeIndices[mol];
+    moleculeOffset = molVars.startIdxMolecules[mI];
+    numberOfAtoms = molVars.startIdxMolecules[mI + 1] - molVars.startIdxMolecules[mI];
+
+    for(int atom = 0; atom < numberOfAtoms; atom++) {
+      pdbAtoms.x[atomDestinationStart + atom] = pdbAtomsCopy.x[moleculeOffset + atom];
+      pdbAtoms.y[atomDestinationStart + atom] = pdbAtomsCopy.y[moleculeOffset + atom];
+      pdbAtoms.z[atomDestinationStart + atom] = pdbAtomsCopy.z[moleculeOffset + atom];
+      pdbAtoms.beta[atomDestinationStart + atom] = pdbAtomsCopy.beta[moleculeOffset + atom];
+      pdbAtoms.box[atomDestinationStart + atom] = pdbAtomsCopy.box[moleculeOffset + atom];
+      pdbAtoms.resNames[atomDestinationStart + atom] = pdbAtomsCopy.resNames[moleculeOffset + atom];
+      pdbAtoms.chainLetter[atomDestinationStart + atom] = pdbAtomsCopy.chainLetter[moleculeOffset + atom];
+    }
+
+    atomDestinationStart += numberOfAtoms;
+  }
+}
+
 
 int mol_setup::DeserializeMoleculeMapAndMoleculeVariables(MoleculeVariables & molVars, 
                                                           MolMap& kindMap)
@@ -313,7 +335,10 @@ int MolSetup::Init(ConfigSetup & config,
     std::vector<mol_setup::Atom> allAtoms;
     ScanAtomsForSegmentInfo(allAtoms, config.in.files.psf.name, config.in.files.psf.defined, pdbAtoms);
     int result = DeserializeMoleculeMapAndMoleculeVariables(molVars, kindMap);
+    /* We have to sort the atoms before we construct the molecules object to ensure 
+       beta & chainLetter correspond to the right atoms */
     CreateSortedSegmentIndices(allAtoms, molVars);
+    SortPDBAtoms(pdbAtoms, molVars);
     return result;
   } else {
     molVars.enableGenerateSegmentOut = config.out.restart.settings.enable;
