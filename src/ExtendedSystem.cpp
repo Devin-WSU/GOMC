@@ -68,8 +68,8 @@ void ExtendedSystem::UpdateCoordinate(PDBSetup &pdb,
   for(; cmIndex < (int) molLookup.molLookupCount; cmIndex++) {
     if(moleculeOffset >= numAtoms) break;
     /* 
-       If we are continuing from Checkpoint, we load molLookup from file and rebuild molecules 
-       from a restorted molMap.
+       If we are continuing from Checkpoint, we load molLookup from checkpoint and rebuild molecules 
+       from a serialized molMap.
        
        The pdb and psf files will be out of agreement with these objects, but we stored the
        mapping of each molecule into these objects in the segment column, which we can use

@@ -236,7 +236,7 @@ void CheckpointSetup::readMoleculeLookupData()
   atomChargeVec.resize(atomCount);
   //read the fixedMolecule array itself
   for(int i = 0; i < (int) atomChargeVec.size(); i++) {
-    atomChargeVec[i] = read_uint32_binary();
+    atomChargeVec[i] = read_double_binary();
   }
 }
 
