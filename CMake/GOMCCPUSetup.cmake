@@ -35,7 +35,7 @@ if(ENSEMBLE_NVT)
 endif()
 
 if(ENSEMBLE_GEMC)
-   add_executable(GEMC ${sources} ${headers} ${libHeaders} ${libSources})
+   add_executable(GEMC ${sources} ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
    set_target_properties(GEMC PROPERTIES 
       OUTPUT_NAME ${GE_name}
       COMPILE_FLAGS "${GE_flags}")
@@ -50,7 +50,7 @@ if(ENSEMBLE_GEMC)
 endif()
 
 if(ENSEMBLE_GCMC)
-   add_executable(GCMC ${sources} ${headers} ${libHeaders} ${libSources})
+   add_executable(GCMC ${sources} ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
    set_target_properties(GCMC PROPERTIES 
       OUTPUT_NAME ${GC_name}
       COMPILE_FLAGS "${GC_flags}")
@@ -65,7 +65,7 @@ if(ENSEMBLE_GCMC)
 endif()
 
 if(ENSEMBLE_NPT)
-   add_executable(NPT ${sources} ${headers} ${libHeaders} ${libSources})
+   add_executable(NPT ${sources} ${headers} ${libHeaders} ${libSources} ${BOOST_INCLUDE_DIRS})
    set_target_properties(NPT PROPERTIES 
       OUTPUT_NAME ${NPT_name}
       COMPILE_FLAGS "${NPT_flags}")

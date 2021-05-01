@@ -13,6 +13,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "GOMC_Config.h"
 #include "MolSetup.h"
+
 class CheckpointOutput : public OutputableBase
 {
 public:
