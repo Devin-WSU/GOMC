@@ -117,7 +117,8 @@ public:
               const double l_x,
               const double l_y,
               const double l_z,
-              const double l_beta);
+              const double l_beta,
+              const double l_occ);
 
   void Read(FixedWidthReader & file);
   void Clear();
