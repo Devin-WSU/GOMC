@@ -45,6 +45,8 @@ PSFOutput::PSFOutput(const Molecules& molecules, const System &sys,
   }
   outFName = set.config.out.state.files.psf.name;
   onlyPrintOnFirstStep = true;
+  /* To eliminate arithmetic exceptions */
+  stepsPerOut = 1;
 }
 
 
@@ -53,7 +55,8 @@ void PSFOutput::Init(pdb_setup::Atoms const& atoms,
 {
   std::string bStr = "", aliasStr = "", numStr = "";
   sstrm::Converter toStr;
-  enableOut = output.state.settings.enable;
+  //enableOut = output.state.settings.enable;
+  enableOut = false;
   
   enableRestOut = output.restart.settings.enable;
   stepsRestPerOut = output.restart.settings.frequency;
