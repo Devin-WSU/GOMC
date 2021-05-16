@@ -307,6 +307,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
       in.files.xscInput.defined[boxnum] = true;
       in.restart.restartFromXSCFile = true;
     } else if(CheckString(line[0], "Checkpoint")) {
+      /*
       if (line.size() == 3){
         in.files.checkpoint.defined[0] = checkBool(line[1]);
         in.restart.restartFromCheckpoint = checkBool(line[1]);
@@ -324,6 +325,9 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           in.files.checkpoint.name[0] = line[1];
         }
       }
+      */
+      in.files.checkpoint.defined[0] = checkBool(line[1]);
+      in.restart.restartFromCheckpoint = checkBool(line[1]);
     }
 #if ENSEMBLE == GEMC
     else if(CheckString(line[0], "GEMC")) {

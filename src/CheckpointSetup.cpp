@@ -39,7 +39,8 @@ CheckpointSetup::CheckpointSetup(System & sys, StaticVals const& statV,
                                  Setup const& set) :
   parallelTemperingWasEnabled(false)
 {
-  std::string file = set.config.in.files.checkpoint.name[0];
+  std::string file = "Checkpoint.dat";
+  //std::string file = set.config.in.files.checkpoint.name[0];
 #if GOMC_LIB_MPI
   filename = sys.ms->replicaInputDirectoryPath + file;
 #else
