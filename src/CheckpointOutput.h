@@ -12,6 +12,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "MoveBase.h"
 #include <iostream>
 #include "GOMC_Config.h"
+#include "Writer.h"
 
 class CheckpointOutput : public OutputableBase
 {
@@ -44,6 +45,8 @@ private:
 
   bool enableParallelTempering;
   std::string filename;
+  Writer outputFileWriter;
+
   FILE* outputFile;
   ulong stepsPerCheckpoint;
   char gomc_version[5];

@@ -53,6 +53,14 @@ CheckpointOutput::CheckpointOutput(System & sys, StaticVals const& statV) :
 void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
                             config_setup::Output const& output)
 {
+  bool printNotify;
+  bool isBinary = true;
+#ifndef NDEBUG
+      printNotify = true;
+#else
+      printNotify = false;
+#endif
+
   enableRestOut = output.restart.settings.enable;
   stepsRestPerOut = output.restart.settings.frequency;
   std::string file = output.statistics.settings.uniqueStr.val + "_restart.chk";
@@ -61,6 +69,7 @@ void CheckpointOutput::Init(pdb_setup::Atoms const& atoms,
 #else
   filename = file;
 #endif
+  outputFileWriter.Init(filename, " output Checkpoint", true, printNotify, isBinary)
 }
 
 void CheckpointOutput::DoOutput(const ulong step){}
@@ -69,7 +78,8 @@ void CheckpointOutput::DoOutputRestart(const ulong step)
 {
   GOMC_EVENT_START(1, GomcProfileEvent::CHECKPOINT_OUTPUT);
   std::cout << "Writing checkpoint to file " << filename << " at step " << step+1 << "\n";
-  openOutputFile();
+  outputFileWriter.openOverwrite();
+  //openOutputFile();
   printGOMCVersion();
   printStepNumber(step);
   printRandomNumbers();

@@ -21,9 +21,10 @@ public:
   Writer() {}
   //Init now.
   Writer(std::string const& name, std::string const& alias,
-         const bool crit = true, const bool note = true)
+         const bool crit = true, const bool note = true,
+         const bool isBin = false)
   {
-    Init(name, alias, crit, note);
+    Init(name, alias, crit, note, isBin);
   }
 
   ~Writer(void)
@@ -33,7 +34,7 @@ public:
 
   //Set main class vars.
   void Init(std::string const& name, std::string const& alias,
-            const bool crit, const bool note)
+            const bool crit, const bool note, const bool isBin = false)
   {
     fileName = name;
     fileAlias = alias;
@@ -42,6 +43,7 @@ public:
     isOpen = false;
     firstWrite = true;
     nameWAlias = fileAlias + " file: ./"  + fileName;
+    isBinary = isBin;
   }
 
   //Open or close a file, with basic protections
@@ -49,7 +51,7 @@ public:
   {
     if (isOpen) return;
     file.open(fileName.c_str(),
-              (firstWrite ? std::ios::out : std::ios::app));
+              isBinary ? (std::ios::out | std::ios::binary) : (firstWrite ? std::ios::out : std::ios::app));
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
@@ -58,7 +60,7 @@ public:
   void openOverwrite(void)
   {
     if (isOpen) return;
-    file.open(fileName.c_str(), std::ios::out);
+    file.open(fileName.c_str(), isBinary ? (std::ios::out | std::ios::binary) : std::ios::out);
     CheckFileState(true, "...could not be opened.", "Writing to ");
   }
 
@@ -106,7 +108,7 @@ protected:
   }
 
   std::string fileName, fileAlias, nameWAlias;
-  bool critical, notify, isOpen, firstWrite;
+  bool critical, notify, isOpen, firstWrite, isBinary;
 };
 
 #endif /*WRITER_H*/
