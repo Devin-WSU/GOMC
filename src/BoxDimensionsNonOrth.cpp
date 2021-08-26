@@ -324,6 +324,7 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
   */
 
 #if GOMC_LIB_MPI
+/*
   std::vector<double> BoxDimensionsNonOrth::SerializeBoxDimObject(){
     #if ENSEMBLE == GEMC
       int NUMBER_OF_ATTRIBUTES = 75;
@@ -412,7 +413,7 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
 
     return serialBoxDim;
   }
-
+/*
     void BoxDimensionsNonOrth::ReadFromSerializedBoxDimObject(std::vector<double> & serialBoxDim){
     
     #if ENSEMBLE == GEMC
@@ -507,4 +508,5 @@ void BoxDimensionsNonOrth::UnwrapPBC(double & x, double & y, double & z,
     #endif
 
   }
+  */
 #endif
