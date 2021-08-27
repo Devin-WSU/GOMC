@@ -26,12 +26,13 @@ public:
   bool RecalculateAndCheck(void);
 
   #if GOMC_GTEST_MPI
-      double GetSystemEnergy(void);
-      void ExchangeReplicas(int worldRank);
-      Coordinates& getCoordinates(void);
-      COM& getCOMs(void);
-      CellList& getCellList(void);
-
+    double GetSystemEnergy(void);
+    void ExchangeReplicas(int worldRank);
+    Coordinates& getCoordinates(void);
+    COM& getCOMs(void);
+    CellList& getCellList(void);
+    double getVolume(int box);
+    void SetGlobalVolumes(int worldRank);
   #endif
 
 private:

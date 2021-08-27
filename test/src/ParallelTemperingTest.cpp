@@ -218,10 +218,18 @@ TEST(ParallelTemperingTest, FullSwapEwald) {  /// Then you can create tests as u
   #endif
   Coordinates originalCoords = sim->getCoordinates();
   COM originalCOM = sim->getCOMs();
+  #if ENSEMBLE == NPT
+  sim->SetGlobalVolumes(worldRank);
+  #endif
   //CellList originalCellList = sim->getCellList();
   double originalEnergy = sim->GetSystemEnergy();
-
-  sim->ExchangeReplicas(worldRank);
+  int exchangePartner;
+  if(worldRank == 0){
+    exchangePartner = 1;
+  } else {
+    exchangePartner = 0;
+  }
+  sim->ExchangeReplicas(exchangePartner);
 
   Coordinates otherCoords = sim->getCoordinates();
   COM otherCOM = sim->getCOMs();

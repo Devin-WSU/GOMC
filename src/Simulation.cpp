@@ -172,16 +172,9 @@ bool Simulation::RecalculateAndCheck(void)
       double Simulation::GetSystemEnergy(void){
         return system->potential.Total();
       }
-      void Simulation::ExchangeReplicas(int worldRank){
-        PTUtils->forceExchange(worldRank, system->coordinates, system->com);
-        system->cellList.GridAll(system->boxDimRef, system->coordinates, system->molLookup);
-        if (staticValues->forcefield.ewald) {
-          for(int box = 0; box < BOX_TOTAL; box++) {
-            system->calcEwald->BoxReciprocalSums(box, system->coordinates);
-            system->potential.boxEnergy[box].recip = system->calcEwald->BoxReciprocal(box, false);
-          }
-        }
-        system->potential = system->calcEnergy.SystemTotal();
+      void Simulation::ExchangeReplicas(int exchangePartner){
+        PTUtils->Exchange(exchangePartner, system->coordinates, system->com);
+        PTUtils->ReinitializeReplicas();
       }
       Coordinates& Simulation::getCoordinates(void){
         return system->coordinates;
@@ -192,4 +185,11 @@ bool Simulation::RecalculateAndCheck(void)
       CellList& Simulation::getCellList(void){
         return system->cellList;
       }
+      double Simulation::getVolume(int box){
+        return system->boxDimRef.volume[box];
+      }
+      void Simulation::SetGlobalVolumes(int worldRank){
+        PTUtils->SetGlobalVolumes(worldRank, getVolume(0));
+      }
+
   #endif

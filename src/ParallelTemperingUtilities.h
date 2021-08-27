@@ -91,14 +91,13 @@ public:
   void print_transition_matrix(FILE * fplog, int n, const std::vector< std::vector<int> > &nmoves, const std::vector<int> &nattempt);
   void print_replica_exchange_statistics(FILE * fplog);
   void print_allswitchind(FILE* fplog, int n, const std::vector<int> &pind, std::vector<int> &allswaps, std::vector<int> &tmpswap);
-
-#if GOMC_GTEST_MPI
-  /* Assumes only two replicas exist */
-  void forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef);
+  void Exchange(int exchangePartner, Coordinates & currCoordRef, COM & currComRef);
+  void ReinitializeReplicas();
+#if GOMC_GTEST_MPI && ENSEMBLE == NPT
+  void SetGlobalVolumes(int worldRank, double global_volumes_arg);
 #endif
 
 private:
-  void ReinitializeReplicas();
 
   MultiSim const*const& ms;
   ReplicaCommunicator replcomm;

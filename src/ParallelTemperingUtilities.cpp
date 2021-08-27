@@ -430,36 +430,11 @@ void ParallelTemperingUtilities::conductExchanges(int replicaID, Coordinates & c
 
       if (exchangePartner != replicaID) {
         /* Exchange the global states between the master nodes */
+        
 #ifndef NDEBUG
         fprintf(fplog, "Exchanging %d with %d\n", replicaID, exchangePartner);
 #endif
-
-        /* Calls deep copy operators */
-        newMolsPos = currCoordRef;
-        newCOMs = currComRef;
-  #if ENSEMBLE == NPT
-        if(isOrth) {
-          newDim = boxDimRef;
-          for (int b = 0; b < BOX_TOTAL; b++) {
-            newDim.SetVolume(b, global_volumes[exchangePartner]);
-          }
-        } else {
-          newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
-          for (int b = 0; b < BOX_TOTAL; b++) {
-            newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
-          }
-        }
-        if(isOrth)
-          boxDimRef = newDim;
-        else
-        *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
-  #endif
-        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
-
-        swap(currCoordRef, newMolsPos);
-        swap(currComRef, newCOMs);
-
+        Exchange(exchangePartner, currCoordRef, currComRef);
         ReinitializeReplicas();
       }
     }
@@ -1311,25 +1286,41 @@ void ParallelTemperingUtilities::print_allswitchind(FILE* fplog, int n, const st
   fprintf(fplog, "\n\n");
 }
 
-#if GOMC_GTEST_MPI
-void ParallelTemperingUtilities::forceExchange(int worldRank, Coordinates & currCoordRef, COM & currComRef){
-        int exchangePartner;
-        if(worldRank == 0){
-          exchangePartner = 1;
-        } else {
-          exchangePartner = 0;
-        }
+void ParallelTemperingUtilities::Exchange(int exchangePartner, Coordinates & currCoordRef, COM & currComRef){
+  /* Calls deep copy operators */
+  newMolsPos = currCoordRef;
+  newCOMs = currComRef;
+#if ENSEMBLE == NPT
+  if(isOrth) {
+    newDim = boxDimRef;
+    for (int b = 0; b < BOX_TOTAL; b++) {
+      newDim.SetVolume(b, global_volumes[exchangePartner]);
+    }
+  } else {
+    newDimNonOrth = *((BoxDimensionsNonOrth*)(&boxDimRef));
+    for (int b = 0; b < BOX_TOTAL; b++) {
+      newDimNonOrth.SetVolume(b, global_volumes[exchangePartner]);
+    }
+  }
+  if(isOrth)
+    boxDimRef = newDim;
+  else
+  *((BoxDimensionsNonOrth*)(&boxDimRef)) = newDimNonOrth;
+#endif
+  replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
+  replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
 
-        newMolsPos = currCoordRef;
-        newCOMs = currComRef;
-
-        replcomm.exchangeXYZArrayNonBlocking(&newMolsPos, exchangePartner);
-        replcomm.exchangeXYZArrayNonBlocking(&newCOMs, exchangePartner);
-
-        swap(currCoordRef, newMolsPos);
-        swap(currComRef, newCOMs);
+  swap(currCoordRef, newMolsPos);
+  swap(currComRef, newCOMs);
 
 }
+
+#if GOMC_GTEST_MPI && ENSEMBLE == NPT
+  void ParallelTemperingUtilities::SetGlobalVolumes(int worldRank, double volume){
+    global_volumes[worldRank] = volume;
+    MPI_Allreduce(MPI_IN_PLACE, &global_volumes[0], ms->worldSize, MPI_DOUBLE, MPI_SUM,
+                  MPI_COMM_WORLD);
+  }
 #endif
 
 #endif
