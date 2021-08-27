@@ -188,8 +188,10 @@ bool Simulation::RecalculateAndCheck(void)
       double Simulation::getVolume(int box){
         return system->boxDimRef.volume[box];
       }
+  #if ENSEMBLE == NPT
       void Simulation::SetGlobalVolumes(int worldRank){
         PTUtils->SetGlobalVolumes(worldRank, getVolume(0));
       }
+  #endif
 
   #endif

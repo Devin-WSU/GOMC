@@ -32,7 +32,9 @@ public:
     COM& getCOMs(void);
     CellList& getCellList(void);
     double getVolume(int box);
+  #if ENSEMBLE == NPT
     void SetGlobalVolumes(int worldRank);
+  #endif
   #endif
 
 private:
