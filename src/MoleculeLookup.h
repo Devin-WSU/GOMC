@@ -28,11 +28,11 @@ class MoleculeLookup
 {
 public:
 
-  MoleculeLookup() : molLookup(NULL), boxAndKindStart(NULL), boxAndKindSwappableCounts(NULL),
-   molIndex(NULL), atomIndex(NULL), molKind(NULL), atomKind(NULL), atomCharge(NULL) {}
+  MoleculeLookup(){}
 
   ~MoleculeLookup()
   {
+    /*
     delete[] molLookup;
     delete[] boxAndKindStart;
     delete[] molIndex;
@@ -41,6 +41,7 @@ public:
     delete[] atomKind;
     delete[] atomCharge;
     delete[] boxAndKindSwappableCounts;
+    */
   }
 
  MoleculeLookup& operator=(const MoleculeLookup & rhs);
@@ -125,9 +126,9 @@ public:
   bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
   {
     uint index = std::find(
-                  molLookup + boxAndKindStart[box * numKinds + kindIdx],
-                  molLookup + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
-                - molLookup;
+                  molLookup.begin() + boxAndKindStart[box * numKinds + kindIdx],
+                  molLookup.begin() + boxAndKindStart[box * numKinds + kindIdx + 1], molIdx)
+                - molLookup.begin();
 
     return ((molLookup[index] == molIdx));
   }
@@ -174,24 +175,24 @@ uint GetConsensusMolBeta( const uint pStart,
 
   //array of indices for type Molecule, sorted by box and kind for
   //move selection
-  uint* molLookup;
+  std::vector<uint> molLookup;
   uint molLookupCount;
   //index [BOX_TOTAL * kind + box] is the first element of that kind/box in
   //molLookup
   //index [BOX_TOTAL * kind + box + 1] is the element after the end
   //of that kind/box
-  uint* boxAndKindStart;
-  uint* boxAndKindSwappableCounts;
+  std::vector<uint> boxAndKindStart;
+  std::vector<uint> boxAndKindSwappableCounts;
   uint boxAndKindStartCount;
   uint numKinds;
   std::vector <uint> fixedMolecule;
   std::vector <uint> canSwapKind; //Kinds that can move intra and inter box
   std::vector <uint> canMoveKind; //Kinds that can move intra box only
-  int *molIndex; // stores the molecule index for global atom index
-  int *atomIndex; // stores the local atom index for global atom index
-  int *molKind; // stores the molecule kind for global atom index
-  int *atomKind; // stores the atom kind for global atom index
-  double *atomCharge; // stores the atom's charge for global atom index
+  std::vector<int> molIndex; // stores the molecule index for global atom index
+  std::vector<int> atomIndex; // stores the local atom index for global atom index
+  std::vector<int> molKind; // stores the molecule kind for global atom index
+  std::vector<int> atomKind; // stores the atom kind for global atom index
+  std::vector<double> atomCharge; // stores the atom's charge for global atom index
 
   // make CheckpointOutput class a friend so it can print all the private data
   friend class CheckpointOutput;
@@ -254,8 +255,9 @@ public:
   }
   box_iterator() : pIt(NULL) {}
 private:
-  box_iterator(uint * _pLook, uint * _pSec);
-  uint* pIt;
+  box_iterator(const uint * _pLook, const uint * _pSec);
+  uint const* pIt;
 };
+
 
 #endif
