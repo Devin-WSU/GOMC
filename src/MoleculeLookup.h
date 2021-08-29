@@ -43,6 +43,8 @@ public:
     delete[] boxAndKindSwappableCounts;
   }
 
+ MoleculeLookup& operator=(const MoleculeLookup & rhs);
+
   //Initialize this object to be consistent with Molecules mols
   void Init(Molecules const& mols, const pdb_setup::Atoms& atomData);
 

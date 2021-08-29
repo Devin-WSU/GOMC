@@ -13,6 +13,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <utility>
 #include <iostream>
 
+ MoleculeLookup& MoleculeLookup::operator=(const MoleculeLookup & rhs){
+
+}
+
+
 void MoleculeLookup::Init(const Molecules& mols,
                           const pdb_setup::Atoms& atomData)
 {
