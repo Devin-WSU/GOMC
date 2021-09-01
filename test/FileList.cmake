@@ -5,6 +5,7 @@ set(TestSources
     test/src/MolLookupTest.cpp
     test/src/CircuitTester.cpp
     test/src/PSFParserTest.cpp
+    test/src/WolfMethodTest.cpp
 )
 
 set(TestHeaders
@@ -27,6 +28,7 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
+    src/Wolf.cpp
 )
 
 set(GOMCHeaders
@@ -41,6 +43,7 @@ set(GOMCHeaders
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
     GOMC_Config.h
+    src/Wolf.h
 )
 
 set(GOMCMPISources
@@ -260,7 +263,6 @@ set(sources
    src/Geometry.cpp
    src/HistOutput.cpp
    src/InputFileReader.cpp
-   src/Main.cpp
    src/MoleculeKind.cpp
    src/MoleculeLookup.cpp
    src/Molecules.cpp
