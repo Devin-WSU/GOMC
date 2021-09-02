@@ -28,7 +28,7 @@ set(GOMCSources
     lib/CircuitFinder.cpp
     src/InputFileReader.cpp
     lib/FloydWarshallCycle.cpp
-    src/Wolf.cpp
+    src/FFWolf.cpp
 )
 
 set(GOMCHeaders
@@ -43,7 +43,7 @@ set(GOMCHeaders
     src/InputFileReader.h
     lib/FloydWarshallCycle.h
     GOMC_Config.h
-    src/Wolf.h
+    src/FFWolf.h
 )
 
 set(GOMCMPISources
