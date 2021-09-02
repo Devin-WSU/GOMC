@@ -1840,3 +1840,9 @@ void CalculateEnergy::ChangeLRC(Energy *energyDiff, Energy &dUdL_VDW,
     }
   }
 }
+
+  #if GOMC_GTEST || GOMC_GTEST_MPI
+  double CalculateEnergy::GetCharge(int atomIndex){
+    return particleCharge[atomIndex];
+  }
+  #endif
