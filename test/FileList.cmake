@@ -3,8 +3,8 @@ set(TestSources
     test/src/BitLibTest.cpp
     test/src/EndianTest.cpp
     test/src/MolLookupTest.cpp
-    test/src/CircuitTester.cpp
-    test/src/PSFParserTest.cpp
+    #test/src/CircuitTester.cpp
+    #test/src/PSFParserTest.cpp
     test/src/WolfMethodTest.cpp
 )
 
