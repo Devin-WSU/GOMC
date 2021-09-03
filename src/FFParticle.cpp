@@ -282,13 +282,19 @@ inline void FFParticle::CalcAdd_1_4(double& en, const double distSq,
 
 inline void FFParticle::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact,
-    const bool NB) const
+    const bool NB,
+    const uint box) const
 {
-  double dist = sqrt(distSq);
-  if(NB)
-    en += qi_qj_Fact / dist;
-  else
-    en += qi_qj_Fact * forcefield.scaling_14 / dist;
+  if(forcefield.wolf){
+    double dist = sqrt(distSq);
+    en += CalcCoulombWolf(dist, qi_qj_Fact, box);
+  } else {
+    double dist = sqrt(distSq);
+    if(NB)
+      en += qi_qj_Fact / dist;
+    else
+      en += qi_qj_Fact * forcefield.scaling_14 / dist;
+  }
 }
 
 //mie potential

@@ -415,7 +415,7 @@ void DCCrankShaftDih::ParticleNonbonded1_N(cbmc::TrialMol const& mol,
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
-                                                   qi_qj_Fact, true);
+                                                   qi_qj_Fact, true, box);
           }
         }
       }
@@ -452,7 +452,7 @@ void DCCrankShaftDih::ParticleNonbonded1_4(cbmc::TrialMol const& mol,
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
-                                                   qi_qj_Fact, false);
+                                                   qi_qj_Fact, false, box);
           }
         }
       }
@@ -489,7 +489,7 @@ void DCCrankShaftDih::ParticleNonbonded1_3(cbmc::TrialMol const& mol,
             double qi_qj_Fact = kind.AtomCharge(partIndex) *
                                 kind.AtomCharge(*partner) * num::qqFact;
             data->ff.particles->CalcCoulombAdd_1_4(nonbonded[t], distSq,
-                                                   qi_qj_Fact, false);
+                                                   qi_qj_Fact, false, box);
           }
         }
       }

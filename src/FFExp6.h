@@ -69,9 +69,6 @@ public:
   virtual double CalcCoulombVir(const double distSq, const uint kind1,
                                 const uint kind2, const double qi_qj,
                                 const double lambda, const uint b) const;
-  virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact,
-                                  const bool NB) const;
 
   //!Returns energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
@@ -168,17 +165,6 @@ inline void FF_EXP6::CalcAdd_1_4(double& en, const double distSq,
                                           (1.0 - dist / rMin_1_4[idx]));
 
   en += expConst_1_4[idx] * (repulse - attract);
-}
-
-inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
-                                        const double qi_qj_Fact,
-                                        const bool NB) const
-{
-  double dist = sqrt(distSq);
-  if(NB)
-    en += qi_qj_Fact / dist;
-  else
-    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 inline double FF_EXP6::CalcEn(const double distSq, const uint kind1,

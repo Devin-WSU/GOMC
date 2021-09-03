@@ -56,9 +56,6 @@ public:
   virtual double CalcCoulombVir(const double distSq, const uint kind1,
                                 const uint kind2, const double qi_qj,
                                 const double lambda, const uint b) const;
-  virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact,
-                                  const bool NB) const;
 
   //!Returns Ezero, no energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
@@ -140,17 +137,6 @@ inline void FF_SHIFT::CalcAdd_1_4(double& en, const double distSq,
 #endif
 
   en += (epsilon_cn_1_4[index] * (repulse - attract) - shiftConst_1_4[index]);
-}
-
-inline void FF_SHIFT::CalcCoulombAdd_1_4(double& en, const double distSq,
-    const double qi_qj_Fact,
-    const bool NB) const
-{
-  double dist = sqrt(distSq);
-  if(NB)
-    en += qi_qj_Fact / dist;
-  else
-    en += qi_qj_Fact * forcefield.scaling_14 / dist;
 }
 
 inline double FF_SHIFT::CalcEn(const double distSq, const uint kind1,

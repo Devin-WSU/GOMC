@@ -165,12 +165,13 @@ public:
   //! Calculates Nonbonded 1_3 intramolecule energy of a full molecule
   //for Martini forcefield
   double IntraEnergy_1_3(const double distSq, const uint atom1,
-                         const uint atom2, const uint molIndex) const;
+                         const uint atom2, const uint molIndex, const uint box) const;
 
   //! Calculates Nonbonded 1_4 intramolecule energy of a full molecule
   //for Martini forcefield
   double IntraEnergy_1_4(const double distSq, const uint atom1,
-                         const uint atom2, const uint molIndex) const;
+                         const uint atom2, const uint molIndex,
+                         const uint box) const;
   //! Calculate Torque
   void CalculateTorque(std::vector<uint>& moleculeIndex,
                        XYZArray const& coordinates,

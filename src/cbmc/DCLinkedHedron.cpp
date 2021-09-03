@@ -299,7 +299,7 @@ void DCLinkedHedron::BuildOld(TrialMol& oldMol, uint molIndex)
                                         oldMol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-                                       hed.Bonded(b), molIndex);
+                                       hed.Bonded(b), molIndex, oldMol.GetBox());
           if(std::isnan(nonbonded_1_4[tor]))
             nonbonded_1_4[tor] = num::BIGNUM;
         }
@@ -399,7 +399,7 @@ void DCLinkedHedron::ChooseTorsion(TrialMol& mol, uint molIndex,
           double distSq = mol.DistSq(bondedC, mol.AtomPosition(prevBonded[p]));
           nonbonded_1_4[tor] +=
             data->calc.IntraEnergy_1_4(distSq, prevBonded[p],
-                                       hed.Bonded(b), molIndex);
+                                       hed.Bonded(b), molIndex, mol.GetBox());
           if(std::isnan(nonbonded_1_4[tor]))
             nonbonded_1_4[tor] = num::BIGNUM;
         }
