@@ -213,18 +213,19 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     // Otherwise, parts of the molecule may extend out of range of each other
     // For now assume the latter.
     for (uint j = i + 1; j < atomSize; j++) {
-      // Vlugt doesnt use cutoffs
-        currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          start + i, start + j, box);
-        // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
-        dist = sqrt(distSq);
-        // Eq (5) Rahbari 2019, 2nd term
-        dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        dampenedCorr -= wolfFactor1[box];
-        // Eq (5) Rahbari 2019, 3rd term
-        undampenedCorr = 1.0/dist;
-        correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
-      }
+      // Vlugt does use cutoffs FOR INTRA CORR
+        if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          start + i, start + j, box)){
+          // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
+          dist = sqrt(distSq);
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
+        }
+      
     }
   }
 
@@ -302,17 +303,17 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
         // Vlugt doesnt use cutoffs
-        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box);
-                // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
-        dist = sqrt(distSq);
-        // Eq (5) Rahbari 2019, 2nd term
-        dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        dampenedCorr -= wolfFactor1[box];
-        // Eq (5) Rahbari 2019, 3rd term
-        undampenedCorr = 1.0/dist;
-        correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
-      }
+        if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box)){
+                  // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
+          dist = sqrt(distSq);
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
+        }
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
@@ -341,16 +342,17 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
     }
     for (uint j = i + 1; j < atomSize; j++) {
         // Vlugt doesnt use cutoffs
-        currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box);
-        dist = sqrt(distSq);
-        // Eq (5) Rahbari 2019, 2nd term
-        dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        dampenedCorr -= wolfFactor1[box];
-        // Eq (5) Rahbari 2019, 3rd term
-        undampenedCorr = 1.0/dist;
-        correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
-      }
+        if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box)){
+          dist = sqrt(distSq);
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * (dampenedCorr - undampenedCorr));
+        }
+      
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
@@ -404,17 +406,17 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
 
     for (uint j = i + 1; j < atomSize; j++) {
       distSq = 0.0;
-      // Vlugt doesnt use cutoffs
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box);
-        // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
-        dist = sqrt(distSq);
-        // Eq (5) Rahbari 2019, 2nd term
-        dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        dampenedCorr -= wolfFactor1[box];
-        // Eq (5) Rahbari 2019, 3rd term
-        undampenedCorr = 1.0/dist;
-        correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
+      // Vlugt does use cutoffs for intra
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box)){
+          // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
+          dist = sqrt(distSq);
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
       }
     }
   }
