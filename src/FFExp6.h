@@ -177,7 +177,7 @@ inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
                                         const double qi_qj_Fact,
                                         const bool NB) const
 {
-  if(forcefield.rCutSq < distSq && !forcefield.wolf)
+  if(forcefield.rCutSq < distSq)
     return;
 
   double dist = sqrt(distSq);

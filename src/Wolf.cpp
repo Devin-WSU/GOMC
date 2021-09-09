@@ -221,10 +221,10 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
           dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
         }
-      // Eq (5) Rahbari 2019, 3rd term
-      undampenedCorr = 1.0/dist;
-      correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
       
     }
   }
@@ -310,10 +310,10 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
           dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
         }
-      // Eq (5) Rahbari 2019, 3rd term
-      undampenedCorr = 1.0/dist;
-      correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
@@ -348,10 +348,10 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
           dampenedCorr -= wolfFactor1[box];
+          // Eq (5) Rahbari 2019, 3rd term
+          undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);  
         }
-      // Eq (5) Rahbari 2019, 3rd term
-      undampenedCorr = 1.0/dist;
-      correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);  
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
@@ -413,10 +413,10 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
           dampenedCorr -= wolfFactor1[box];
+        // Eq (5) Rahbari 2019, 3rd term
+        undampenedCorr = 1.0/dist;
+        correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
       }
-      // Eq (5) Rahbari 2019, 3rd term
-      undampenedCorr = 1.0/dist;
-      correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
     }
   }
   correction *= -1.0 * num::qqFact;
