@@ -71,7 +71,8 @@ public:
                                 const double lambda, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
-                                  const bool NB) const;
+                                  const bool NB,
+                                  const uint box) const;
 
   //!Returns energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
@@ -175,9 +176,10 @@ inline void FF_EXP6::CalcAdd_1_4(double& en, const double distSq,
 
 inline void FF_EXP6::CalcCoulombAdd_1_4(double& en, const double distSq,
                                         const double qi_qj_Fact,
-                                        const bool NB) const
+                                        const bool NB,
+                                        const uint box) const
 {
-  if(forcefield.rCutSq < distSq && !forcefield.wolf)
+  if(forcefield.rCutCoulomb[box] < distSq && !forcefield.wolf)
     return;
 
   double dist = sqrt(distSq);

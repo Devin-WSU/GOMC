@@ -180,7 +180,7 @@ double Wolf::BoxSelf(uint box) const
         }
         // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
         // Vlugt
-        self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+        self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  ff.wolfFactor1[box]);
         self *= -1.0 * num::qqFact;
         GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
         return self;
@@ -215,7 +215,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     for (uint j = i + 1; j < atomSize; j++) {
       // Vlugt does use cutoffs FOR INTRA CORR
         if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          start + i, start + j, box)){
+                          start + i, start + j, box) && distSq < forcefield.rCutCoulomb[box]){
           // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
@@ -282,7 +282,7 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
   // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
   //Vlugt
-  en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+  en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  ff.wolfFactor1[box]);
   return (en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact);
 }
 
@@ -302,9 +302,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-        // Vlugt doesnt use cutoffs
+        // Vlugt does use cutoffs for correction term
         if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box)){
+                         i, j, box) && distSq < forcefield.rCutCoulomb[box]){
                   // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
@@ -341,9 +341,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-        // Vlugt doesnt use cutoffs
+        // Vlugt does use cutoffs for correction term
         if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box)){
+                         i, j, box) && distSq < forcefield.rCutCoulomb[box]){
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
@@ -372,7 +372,7 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
     
     // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
     //Vlugt
-    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  ff.wolfFactor1[box]);
     en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
 
     //Calculate the energy difference for each lambda state
@@ -407,7 +407,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       distSq = 0.0;
       // Vlugt does use cutoffs for intra
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box)){
+                         start + i, start + j, box) && distSq < forcefield.rCutCoulomb[box]){
           // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
@@ -419,7 +419,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
     }
   }
-  correction *= -1.0 * num::qqFact;
+  correction *= num::qqFact;
   //Calculate the energy difference for each lambda state
   for (uint s = 0; s < lambdaSize; s++) {
     coefDiff = lambda_Coul[s] - lambda_Coul[iState];
