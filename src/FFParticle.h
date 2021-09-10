@@ -80,8 +80,7 @@ public:
                                 const uint kind2, const double qi_qj,
                                 const double lambda, uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
-                                  const double qi_qj_Fact, const bool NB,
-                                  const uint box) const;
+                                  const double qi_qj_Fact, const bool NB) const;
 
   //!Returns Energy long-range correction term for a kind pair
   virtual double EnergyLRC(const uint kind1, const uint kind2) const;
