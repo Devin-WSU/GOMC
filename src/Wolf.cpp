@@ -306,7 +306,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-        // Vlugt doesnt use cutoffs
+        // Gross does use cutoffs
         if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
                          i, j, box)){
                   // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
