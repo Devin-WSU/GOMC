@@ -79,6 +79,10 @@ void Wolf::Init() {
       // Store this for quick access in ChangeSelf
       molSelfEnergies[i] = molSelfEnergy;
     }
+    oneThree = ff.OneThree;
+    oneFour = ff.OneFour;
+    oneN = ff.OneN;
+    scaling_14 = ff.scaling_14;
 }
 
 void Wolf::AllocMem()
@@ -180,7 +184,7 @@ double Wolf::BoxSelf(uint box) const
         }
         // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
         // Vlugt
-        self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+        self *= (0.5 * ff.wolfFactor1[box]);
         self *= -1.0 * num::qqFact;
         GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
         return self;
@@ -282,7 +286,7 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
   // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
   //Vlugt
-  en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+  en_self *= (0.5 * ff.wolfFactor1[box]);
   return (en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact);
 }
 
@@ -372,7 +376,7 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
     
     // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
     //Vlugt
-    en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
+    en_self *= (0.5 * ff.wolfFactor1[box]);
     en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
 
     //Calculate the energy difference for each lambda state
@@ -412,6 +416,11 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          if(oneThree && (i + 2 == j || i + 1 == j){
+            dampenedCorr *= scaling_14;
+          } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
+            dampenedCorr *= scaling_14;
+          }
           dampenedCorr -= wolfFactor1[box];
         // Eq (5) Rahbari 2019, 3rd term
         undampenedCorr = 1.0/dist;
