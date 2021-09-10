@@ -224,8 +224,9 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < forcefield.rCutCoulomb[box]){
-        dist = sqrt(distSq);
         dampenedCorr = 0.0;
+/*
+        dist = sqrt(distSq);
         // Always Exlucde 1-2
         if (i + 1 == j){
           // Do nothing
@@ -242,6 +243,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           // Unscaled
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
         }
+*/
         dampenedCorr -= wolfFactor1[box];
         correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
@@ -323,8 +325,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < forcefield.rCutCoulomb[box]){
-        dist = sqrt(distSq);
         dampenedCorr = 0.0;
+/*
+        dist = sqrt(distSq);
         // Always Exlucde 1-2
         if (i + 1 == j){
           // Do nothing
@@ -341,6 +344,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
           // Unscaled
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
         }
+*/
         dampenedCorr -= wolfFactor1[box];
         correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
@@ -374,8 +378,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < forcefield.rCutCoulomb[box]){
-        dist = sqrt(distSq);
         dampenedCorr = 0.0;
+          /*
+        dist = sqrt(distSq);
         // Always Exlucde 1-2
         if (i + 1 == j){
           // Do nothing
@@ -392,6 +397,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
           // Unscaled
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
         }
+        */
         dampenedCorr -= wolfFactor1[box];
         correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
                       dampenedCorr;
@@ -453,8 +459,9 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < forcefield.rCutCoulomb[box]){
-        dist = sqrt(distSq);
         dampenedCorr = 0.0;
+        /*
+        dist = sqrt(distSq);
         // Always Exlucde 1-2
         if (i + 1 == j){
           // Do nothing
@@ -471,6 +478,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           // Unscaled
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
         }
+        */
         dampenedCorr -= wolfFactor1[box];
         correction += particleCharge[i + start] * particleCharge[j + start] * dampenedCorr;
       }
