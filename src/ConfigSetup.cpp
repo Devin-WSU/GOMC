@@ -649,15 +649,15 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           }
     } else if (CheckString(line[0], "WolfKind")){
           if (line.size() == 2){
-            if (CheckString(line[2], "Hybrid")){
+            if (CheckString(line[1], "Hybrid")){
               sys.ff.WOLF_KIND = sys.ff.WOLF_HYBRID_KIND;
               printf("%-40s %-s \n", "Info: Wolf Hybrid Vlugt/Gross Implementation", "Active");
               sys.elect.readWolfKind = true;
-            } else if (CheckString(line[2], "Gross")){    
+            } else if (CheckString(line[1], "Gross")){    
               sys.ff.WOLF_KIND = sys.ff.WOLF_GROSS_KIND;
               printf("%-40s %-s \n", "Info: Wolf Gross Implementation", "Active");
               sys.elect.readWolfKind = true;
-            } else if (CheckString(line[2], "Vlugt")) {
+            } else if (CheckString(line[1], "Vlugt")) {
               sys.ff.WOLF_KIND = sys.ff.WOLF_VLUGT_KIND;
               printf("%-40s %-s \n", "Info: Wolf Vlugt Implementation", "Active");
               sys.elect.readWolfKind = true;
@@ -665,6 +665,7 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
               std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
                             "Usage : WolfKind\tHybrid/Gross/Vlugt" << std::endl <<
                             "Example : WolfKind\tGross" << std::endl;
+              exit(1);
             }
           } else {
             std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
