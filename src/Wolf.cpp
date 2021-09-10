@@ -258,21 +258,21 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
               // Do nothing
             } else if (i + 2 == j && oneThree) {
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;          
               dampenedCorr *= scaling_14;
             }
             if(i + 3 == j && oneFour){
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;       
               dampenedCorr *= scaling_14;
             } else {
               // Unscaled
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
             }
             // Vlugt doesnt scale
           } else if (isVlugtWolf) {
             dist = sqrt(distSq);
-            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
           }
           // Hybrid is only the negative wolfFactor1
           dampenedCorr -= wolfFactor1[box];
@@ -366,21 +366,21 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
               // Do nothing
             } else if (i + 2 == j && oneThree) {
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               dampenedCorr *= scaling_14;
             }
             if(i + 3 == j && oneFour){
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;       
               dampenedCorr *= scaling_14;
             } else {
               // Unscaled
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
             }
             // Vlugt doesnt scale
           } else if (isVlugtWolf) {
             dist = sqrt(distSq);
-            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
           }
           // Hybrid is only the negative wolfFactor1
           dampenedCorr -= wolfFactor1[box];
@@ -425,21 +425,21 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
               // Do nothing
             } else if (i + 2 == j && oneThree) {
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;       
               dampenedCorr *= scaling_14;
             }
             if(i + 3 == j && oneFour){
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;      
               dampenedCorr *= scaling_14;
             } else {
               // Unscaled
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
             }
             // Vlugt doesnt scale
           } else if (isVlugtWolf) {
             dist = sqrt(distSq);
-            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
           }
           // Hybrid is only the negative wolfFactor1
           dampenedCorr -= wolfFactor1[box];
@@ -516,21 +516,21 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
               // Do nothing
             } else if (i + 2 == j && oneThree) {
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;       
               dampenedCorr *= scaling_14;
             }
             if(i + 3 == j && oneFour){
               // Eq (5) Rahbari 2019, 2nd term
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;    
               dampenedCorr *= scaling_14;
             } else {
               // Unscaled
-              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
             }
             // Vlugt doesnt scale
           } else if (isVlugtWolf) {
             dist = sqrt(distSq);
-            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;
           }
           // Hybrid is only the negative wolfFactor1
           dampenedCorr -= wolfFactor1[box];
