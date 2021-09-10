@@ -33,6 +33,7 @@ Wolf::Wolf(StaticVals & stat, System & sys) :
     for(uint b = 0 ; b < BOX_TOTAL; b++) {
         wolfAlpha[b] = ff.wolfAlpha[b];
         wolfFactor1[b] = ff.wolfFactor1[b];
+        rCutCoulomb[b] = ff.rCutCoulomb[b];
     }
 }
 
@@ -223,7 +224,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
       // Need to check for cutoff
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < forcefield.rCutCoulomb[box]){
+        distSq < rCutCoulomb[box]){
         dist = sqrt(distSq);
         dampenedCorr = 0.0;
         // Always Exlucde 1-2
@@ -320,9 +321,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box) && 
-        distSq < forcefield.rCutCoulomb[box]){
+      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box) && 
+        distSq < rCutCoulomb[box]){
         dist = sqrt(distSq);
         dampenedCorr = 0.0;
         // Always Exlucde 1-2
@@ -373,7 +374,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
     for (uint j = i + 1; j < atomSize; j++) {
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < forcefield.rCutCoulomb[box]){
+        distSq < rCutCoulomb[box]){
         dist = sqrt(distSq);
         dampenedCorr = 0.0;
         // Always Exlucde 1-2
@@ -452,7 +453,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       distSq = 0.0;
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < forcefield.rCutCoulomb[box]){
+        distSq < rCutCoulomb[box]){
         dist = sqrt(distSq);
         dampenedCorr = 0.0;
         // Always Exlucde 1-2

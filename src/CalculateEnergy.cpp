@@ -1120,7 +1120,7 @@ void CalculateEnergy::MolNonbond(double & energy, cbmc::TrialMol const &mol,
 
           if (qi_qj_fact != 0.0) {
             forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-              qi_qj_fact, true, box);
+              qi_qj_fact, true, mol.GetBox());
            }
         }
       }
@@ -1190,7 +1190,7 @@ void CalculateEnergy::MolNonbond_1_4(double & energy,
 
           if (qi_qj_fact != 0.0) {
             forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-                qi_qj_fact, false, box);
+                qi_qj_fact, false, mol.GetBox());
           }
         }
       }
@@ -1259,7 +1259,7 @@ void CalculateEnergy::MolNonbond_1_3(double & energy,
 
           if (qi_qj_fact != 0.0) {
             forcefield.particles->CalcCoulombAdd_1_4(energy, distSq,
-              qi_qj_fact, false, box);
+              qi_qj_fact, false, mol.GetBox());
           }
         }
       }
@@ -1285,6 +1285,13 @@ double CalculateEnergy::IntraEnergy_1_3(const double distSq, const uint atom1,
                          thisKind.AtomCharge(atom2);
 
     if (qi_qj_fact != 0.0) {
+      const uint box_0 = 0;
+      uint box;
+      if(molLookup.IsMoleculeInBox(molIndex, thisKind.kindIndex, box_0)){
+        box = 0;
+      } else {
+        box = 1;
+      }
       forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_fact, false, box);
     }
   }
@@ -1316,6 +1323,13 @@ double CalculateEnergy::IntraEnergy_1_4(const double distSq, const uint atom1,
                          thisKind.AtomCharge(atom2);
 
     if (qi_qj_fact != 0.0) {
+      const uint box_0 = 0;
+      uint box;
+      if(molLookup.IsMoleculeInBox(molIndex, thisKind.kindIndex, box_0)){
+        box = 0;
+      } else {
+        box = 1;
+      }
       forcefield.particles->CalcCoulombAdd_1_4(eng, distSq, qi_qj_fact, false, box);
     }
   }

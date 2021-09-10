@@ -129,7 +129,7 @@ public:
   virtual void UpdateVectorsAndRecipTerms(bool output);
 
   private: 
-    double wolfAlpha[BOX_TOTAL], wolfFactor1[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
+    double wolfAlpha[BOX_TOTAL], wolfFactor1[BOX_TOTAL], rCutCoulomb[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
     //Molecule self energies
     std::vector<double> molSelfEnergies; 
     bool oneThree, oneFour;
