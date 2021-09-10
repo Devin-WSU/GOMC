@@ -231,8 +231,8 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           }
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          undampenedCorr = 1.0/dist;
-          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
+          //undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * dampenedCorr;
         }
       
     }
@@ -325,8 +325,8 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
           }
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          undampenedCorr = 1.0/dist;
-          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * (dampenedCorr - undampenedCorr);  
+          //undampenedCorr = 1.0/dist;
+          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * dampenedCorr;  
         }
     }
   }
@@ -368,8 +368,8 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
           }
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          undampenedCorr = 1.0/dist;
-          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * (dampenedCorr - undampenedCorr);  
+          //undampenedCorr = 1.0/dist;
+          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * dampenedCorr;  
         }
     }
   }
@@ -424,7 +424,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
 
     for (uint j = i + 1; j < atomSize; j++) {
       distSq = 0.0;
-      // Vlugt does use cutoffs for intra
+      // Gross does use cutoffs for intra
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box)){
           // For now, assume psi = 1, so we completely ignore the dampened intramolecular pairwise dist
@@ -436,10 +436,11 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           }
-          dampenedCorr -= wolfFactor1[box];
+          // Gross mod doesnt subtract undampened
+          //dampenedCorr -= wolfFactor1[box];
         // Eq (5) Rahbari 2019, 3rd term
-        undampenedCorr = 1.0/dist;
-        correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
+        //undampenedCorr = 1.0/dist;
+        correction += (particleCharge[i + start] * particleCharge[j + start]) * dampenedCorr;
       }
     }
   }
