@@ -224,15 +224,17 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          /*
           if(oneThree && (i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           }
+          */
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          //undampenedCorr = 1.0/dist;
-          correction += (particleCharge[i + start] * particleCharge[j + start]) * dampenedCorr;
+          undampenedCorr = 1.0/dist;
+          correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
         }
       
     }
@@ -318,15 +320,17 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          /*
           if(oneThree && (i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           }
+          */
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          //undampenedCorr = 1.0/dist;
-          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * dampenedCorr;  
+          undampenedCorr = 1.0/dist;
+          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * (dampenedCorr - undampenedCorr);  
         }
     }
   }
@@ -361,15 +365,17 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          /*
           if(oneThree && (i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           }
+          */
           dampenedCorr -= wolfFactor1[box];
           // Eq (5) Rahbari 2019, 3rd term
-          //undampenedCorr = 1.0/dist;
-          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * dampenedCorr;  
+          undampenedCorr = 1.0/dist;
+          correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box] * (dampenedCorr - undampenedCorr);  
         }
     }
   }
@@ -431,16 +437,17 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
           dist = sqrt(distSq);
           // Eq (5) Rahbari 2019, 2nd term
           dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          /*
           if(oneThree && (i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           } else if (oneFour && (i + 3 == j || i + 2 == j || i + 1 == j){
             dampenedCorr *= scaling_14;
           }
-          // Gross mod doesnt subtract undampened
-          //dampenedCorr -= wolfFactor1[box];
+          */
+          dampenedCorr -= wolfFactor1[box];
         // Eq (5) Rahbari 2019, 3rd term
-        //undampenedCorr = 1.0/dist;
-        correction += (particleCharge[i + start] * particleCharge[j + start]) * dampenedCorr;
+        undampenedCorr = 1.0/dist;
+        correction += (particleCharge[i + start] * particleCharge[j + start]) * (dampenedCorr - undampenedCorr);
       }
     }
   }
