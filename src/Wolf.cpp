@@ -84,6 +84,29 @@ void Wolf::Init() {
     oneThree = ff.OneThree;
     oneFour = ff.OneFour;
     scaling_14 = ff.scaling_14;
+    switch(ff.wolfKind) {
+      //WOLF_HYBRID_KIND
+      case 0:
+        isVlugtWolf = false;
+        isGrossWolf = false;
+        isHybridWolf = true;
+        break;
+      // WOLF_VLUGT_KIND
+      case 1:
+        isVlugtWolf = true;
+        isGrossWolf = false;
+        isHybridWolf = false;
+        break;
+      // WOLF_GROSS_KIND
+      case 2:
+        isVlugtWolf = false;
+        isGrossWolf = true;
+        isHybridWolf = false;
+        break;
+      default:
+        std::cout << "Error ff.WolfKind has invalid value!  Check WolfKind in Config File!" << std::endl;
+        exit(1);
+    }
 }
 
 void Wolf::AllocMem()
@@ -184,11 +207,12 @@ double Wolf::BoxSelf(uint box) const
           }
         }
         // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-        // Vlugt
-        //self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]);
-        // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
-        // We eliminate the dampened rij term by choosing psi = 1
-        self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
+        if (isVlugtWolf){
+          self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]);
+        } else {
+          // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
+          self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
+        }
 
         GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
         return self;
@@ -221,30 +245,38 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     // Otherwise, parts of the molecule may extend out of range of each other
     // For now assume the latter.
     for (uint j = i + 1; j < atomSize; j++) {
-      // Need to check for cutoff
+      // Need to check for cutoff for all kinds
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < rCutCoulomb[box]){
-        dist = sqrt(distSq);
-        dampenedCorr = 0.0;
-        // Always Exlucde 1-2
-        if (i + 1 == j){
-          // Do nothing
-        } else if (i + 2 == j && oneThree) {
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        }
-        if(i + 3 == j && oneFour){
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        } else {
-          // Unscaled
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        }
-        dampenedCorr -= wolfFactor1[box];
-        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+          dampenedCorr = 0.0;
+          // Gross scales intra dampened by sf
+          if (isGrossWolf){
+            dist = sqrt(distSq);
+            // Always Exlucde 1-2
+            if (i + 1 == j){
+              // Do nothing
+            } else if (i + 2 == j && oneThree) {
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            }
+            if(i + 3 == j && oneFour){
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            } else {
+              // Unscaled
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            }
+            // Vlugt doesnt scale
+          } else if (isVlugtWolf) {
+            dist = sqrt(distSq);
+            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          }
+          // Hybrid is only the negative wolfFactor1
+          dampenedCorr -= wolfFactor1[box];
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
     }
   }
@@ -298,11 +330,12 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
   en_self = molSelfEnergies[thisKind.kindIndex];
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
-  // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-  // Vlugt
-  //self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  0.5 * ff.wolfFactor1[box]);
-  // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
-  return (en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact);
+  if (isVlugtWolf){
+    return (en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]));
+  } else {
+    // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
+    return (en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact);
+  }
 }
 
 //calculate correction term after swap move
@@ -324,26 +357,34 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
       if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
                          i, j, box) && 
         distSq < rCutCoulomb[box]){
-        dist = sqrt(distSq);
-        dampenedCorr = 0.0;
-        // Always Exlucde 1-2
-        if (i + 1 == j){
-          // Do nothing
-        } else if (i + 2 == j && oneThree) {
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        }
-        if(i + 3 == j && oneFour){
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        } else {
-          // Unscaled
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        }
-        dampenedCorr -= wolfFactor1[box];
-        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
+          dampenedCorr = 0.0;
+          // Gross scales intra dampened by sf
+          if (isGrossWolf){
+            dist = sqrt(distSq);
+            // Always Exlucde 1-2
+            if (i + 1 == j){
+              // Do nothing
+            } else if (i + 2 == j && oneThree) {
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            }
+            if(i + 3 == j && oneFour){
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            } else {
+              // Unscaled
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            }
+            // Vlugt doesnt scale
+          } else if (isVlugtWolf) {
+            dist = sqrt(distSq);
+            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          }
+          // Hybrid is only the negative wolfFactor1
+          dampenedCorr -= wolfFactor1[box];
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
     }
   }
@@ -375,27 +416,35 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < rCutCoulomb[box]){
-        dist = sqrt(distSq);
-        dampenedCorr = 0.0;
-        // Always Exlucde 1-2
-        if (i + 1 == j){
-          // Do nothing
-        } else if (i + 2 == j && oneThree) {
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        }
-        if(i + 3 == j && oneFour){
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        } else {
-          // Unscaled
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        }
-        dampenedCorr -= wolfFactor1[box];
-        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                      dampenedCorr;
+          dampenedCorr = 0.0;
+          // Gross scales intra dampened by sf
+          if (isGrossWolf){
+            dist = sqrt(distSq);
+            // Always Exlucde 1-2
+            if (i + 1 == j){
+              // Do nothing
+            } else if (i + 2 == j && oneThree) {
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            }
+            if(i + 3 == j && oneFour){
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            } else {
+              // Unscaled
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            }
+            // Vlugt doesnt scale
+          } else if (isVlugtWolf) {
+            dist = sqrt(distSq);
+            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          }
+          // Hybrid is only the negative wolfFactor1
+          dampenedCorr -= wolfFactor1[box];
+          correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                        dampenedCorr;
       }
     }
   }
@@ -419,8 +468,12 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
     //Vlugt
     //en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  ff.wolfFactor1[box] );
     // We eliminate the alpha/root(pi) using Wolf,mod
-    en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
-
+    if (isVlugtWolf){
+      en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]);
+    } else {
+      // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
+      en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
+    }
     //Calculate the energy difference for each lambda state
     for (uint s = 0; s < lambdaSize; s++) {
       coefDiff = lambda_Coul[s] - lambda_Coul[iState];
@@ -454,26 +507,34 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
         distSq < rCutCoulomb[box]){
-        dist = sqrt(distSq);
-        dampenedCorr = 0.0;
-        // Always Exlucde 1-2
-        if (i + 1 == j){
-          // Do nothing
-        } else if (i + 2 == j && oneThree) {
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        }
-        if(i + 3 == j && oneFour){
-          // Eq (5) Rahbari 2019, 2nd term
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
-          dampenedCorr *= scaling_14;
-        } else {
-          // Unscaled
-          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
-        }
-        dampenedCorr -= wolfFactor1[box];
-        correction += particleCharge[i + start] * particleCharge[j + start] * dampenedCorr;
+          dampenedCorr = 0.0;
+          // Gross scales intra dampened by sf
+          if (isGrossWolf){
+            dist = sqrt(distSq);
+            // Always Exlucde 1-2
+            if (i + 1 == j){
+              // Do nothing
+            } else if (i + 2 == j && oneThree) {
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            }
+            if(i + 3 == j && oneFour){
+              // Eq (5) Rahbari 2019, 2nd term
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+              dampenedCorr *= scaling_14;
+            } else {
+              // Unscaled
+              dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+            }
+            // Vlugt doesnt scale
+          } else if (isVlugtWolf) {
+            dist = sqrt(distSq);
+            dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+          }
+          // Hybrid is only the negative wolfFactor1
+          dampenedCorr -= wolfFactor1[box];
+          correction += particleCharge[i + start] * particleCharge[j + start] * dampenedCorr;
       }
     }
   }

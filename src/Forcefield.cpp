@@ -39,7 +39,13 @@ void Forcefield::Init(const Setup& set)
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
-  coulKind = set.config.sys.elect.COUL_KIND;
+  coulKind = set.config.sys.ff.COUL_KIND;
+  wolfKind = set.config.sys.ff.WOLF_KIND;
+  // Only Vlugt Wolf alters the FF behavior by removing cutoffs for Intra Undampened
+  if (wolfKind == 1)
+    isVlugtWolf = true;
+  else
+    isVlugtWolf = false;
 }
 
 void Forcefield::InitBasicVals(config_setup::SystemVals const& val,

@@ -34,7 +34,8 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.ewald = false;
   sys.elect.enable = false;
   sys.elect.wolf = false;
-  sys.elect.COUL_KIND = UINT_MAX;
+  sys.ff.WOLF_KIND = UINT_MAX;
+  sys.ff.COUL_KIND = UINT_MAX;
   sys.elect.cache = false;
   sys.elect.tolerance = DBL_MAX;
   sys.elect.oneFourScale = DBL_MAX;
@@ -43,6 +44,8 @@ ConfigSetup::ConfigSetup(void)
     sys.elect.wolfAlpha[i] = DBL_MAX;
     sys.elect.readWolfAlpha[i] = false;
   }
+  sys.elect.readWolfType = false;
+  sys.elect.readWolfKind = false;
   sys.memcVal.enable = false;
   sys.neMTMCVal.enable = false;
   sys.intraMemcVal.enable = false;
@@ -631,16 +634,42 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
           printf("%-40s %-s \n", "Info: Wolf Electrostatic", sys.elect.wolf ? "Active" : "Inactive");
           if (line.size() > 2){
             if (CheckString(line[2], "DSP")){
-              sys.elect.COUL_KIND = sys.elect.COUL_DSP_KIND;
+              sys.ff.COUL_KIND = sys.ff.COUL_DSP_KIND;
               printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Potential", "Active");
               sys.elect.readWolfType = true;
             } else if (CheckString(line[2], "DSF")){              
-              sys.elect.COUL_KIND = sys.elect.COUL_DSF_KIND;
+              sys.ff.COUL_KIND = sys.ff.COUL_DSF_KIND;
               printf("%-40s %-s \n", "Info: Wolf Dampened Shifted Force", "Active");
               sys.elect.readWolfType = true;
             } else {
-
+              std::cout <<  "Error: Wolf Potential incorrectly specified!" << std::endl <<
+                            "Usage : WolfKind\t(True/False)\t(DSP/DSF)" << std::endl <<
+                            "Example : Wolf\tTrue\tDSP" << std::endl;
             }
+          }
+    } else if (CheckString(line[0], "WolfKind")){
+          if (line.size() == 2){
+            if (CheckString(line[2], "Hybrid")){
+              sys.ff.WOLF_KIND = sys.ff.WOLF_HYBRID_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Hybrid Vlugt/Gross Implementation", "Active");
+              sys.elect.readWolfKind = true;
+            } else if (CheckString(line[2], "Gross")){    
+              sys.ff.WOLF_KIND = sys.ff.WOLF_GROSS_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Gross Implementation", "Active");
+              sys.elect.readWolfKind = true;
+            } else if (CheckString(line[2], "Vlugt")) {
+              sys.ff.WOLF_KIND = sys.ff.WOLF_VLUGT_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Vlugt Implementation", "Active");
+              sys.elect.readWolfKind = true;
+            } else {
+              std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
+                            "Usage : WolfKind\tHybrid/Gross/Vlugt" << std::endl <<
+                            "Example : WolfKind\tGross" << std::endl;
+            }
+          } else {
+            std::cout <<  "Error: Wolf Kind incorrectly specified!" << std::endl <<
+              "Usage : WolfKind\tHybrid/Gross/Vlugt" << std::endl <<
+              "Example : WolfKind\tGross" << std::endl;
           }
     } else if (CheckString(line[0], "WolfAlpha")) {
       if (line.size() != 3){
@@ -1586,12 +1615,15 @@ void ConfigSetup::fillDefaults(void)
     if (!sys.elect.readWolfType){
       sys.elect.readWolfType = true;
       if (sys.moves.multiParticleEnabled){
-        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.elect.COUL_DSF.c_str());
-        sys.elect.COUL_KIND = sys.elect.COUL_DSF_KIND;
+        printf("%-40s %-40s \n", "Default: Wolf with multiparticle enabled: ", sys.ff.COUL_DSF.c_str());
+        sys.ff.COUL_KIND = sys.ff.COUL_DSF_KIND;
       } else {
-        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.elect.COUL_DSP.c_str());
-        sys.elect.COUL_KIND = sys.elect.COUL_DSP_KIND;
+        printf("%-40s %-40s \n", "Default: Wolf without multiparticle enabled: ", sys.ff.COUL_DSP.c_str());
+        sys.ff.COUL_KIND = sys.ff.COUL_DSP_KIND;
       }
+    }
+    if (!sys.elect.readWolfType){
+      sys.ff.WOLF_KIND = sys.ff.WOLF_HYBRID_KIND;
     }
     for(uint b = 0; b < BOX_TOTAL; b++) {
       if(!sys.elect.readWolfAlpha[b]) {
@@ -1682,7 +1714,7 @@ void ConfigSetup::verifyInputs(void)
     exit(EXIT_FAILURE);
   }
 
-  if(sys.elect.wolf && sys.elect.COUL_KIND == sys.elect.COUL_DSP_KIND && sys.moves.multiParticleEnabled){
+  if(sys.elect.wolf && sys.ff.COUL_KIND == sys.ff.COUL_DSP_KIND && sys.moves.multiParticleEnabled){
     printf("Warning: Wolf Damped Shifted Potential (DSP) set with Multiparticle enabled.");
     printf("The force using DSP is discontinuous at the cutoff.  We recommend DSF with MP enabled.\n");
     //exit(EXIT_FAILURE);
@@ -2462,8 +2494,11 @@ const std::string config_setup::FFValues::VDW = "VDW";
 const std::string config_setup::FFValues::VDW_SHIFT = "VDW_SHIFT";
 const std::string config_setup::FFValues::VDW_EXP6 = "VDW_EXP6";
 const std::string config_setup::FFValues::VDW_SWITCH = "VDW_SWITCH";
-const std::string config_setup::ElectroStatic::COUL_DSP = "COUL_DSP";
-const std::string config_setup::ElectroStatic::COUL_DSF = "COUL_DSF";
+const std::string config_setup::FFValues::COUL_DSP = "COUL_DSP";
+const std::string config_setup::FFValues::COUL_DSF = "COUL_DSF";
+const std::string config_setup::FFValues::WOLF_HYBRID = "HYBRID";
+const std::string config_setup::FFValues::WOLF_VLUGT = "VLUGT";
+const std::string config_setup::FFValues::WOLF_GROSS = "GROSS";
 const std::string config_setup::Exclude::EXC_ONETWO = "1-2";
 const std::string config_setup::Exclude::EXC_ONETHREE = "1-3";
 const std::string config_setup::Exclude::EXC_ONEFOUR = "1-4";
@@ -2472,8 +2507,11 @@ const uint config_setup::FFValues::VDW_STD_KIND = 0;
 const uint config_setup::FFValues::VDW_SHIFT_KIND = 1;
 const uint config_setup::FFValues::VDW_SWITCH_KIND = 2;
 const uint config_setup::FFValues::VDW_EXP6_KIND = 3;
-const uint config_setup::ElectroStatic::COUL_DSP_KIND = 0;
-const uint config_setup::ElectroStatic::COUL_DSF_KIND = 1;
+const uint config_setup::FFValues::COUL_DSP_KIND = 0;
+const uint config_setup::FFValues::COUL_DSF_KIND = 1;
+const uint config_setup::FFValues::WOLF_HYBRID_KIND = 0;
+const uint config_setup::FFValues::WOLF_VLUGT_KIND = 1;
+const uint config_setup::FFValues::WOLF_GROSS_KIND = 2;
 const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
 const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
 const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

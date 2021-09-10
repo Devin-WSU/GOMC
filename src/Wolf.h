@@ -132,7 +132,7 @@ public:
     double wolfAlpha[BOX_TOTAL], wolfFactor1[BOX_TOTAL], rCutCoulomb[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
     //Molecule self energies
     std::vector<double> molSelfEnergies; 
-    bool oneThree, oneFour;
+    bool oneThree, oneFour, isVlugtWolf, isGrossWolf, isHybridWolf;
     double scaling_14;
 };
 

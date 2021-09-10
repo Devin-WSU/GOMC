@@ -156,13 +156,16 @@ struct VDWSwitch : public PotentialConfig {
 
 //Items that effect the system interactions and/or identity, e.g. Temp.
 struct FFValues {
-  uint VDW_KIND;
+  uint VDW_KIND, COUL_KIND, WOLF_KIND;
   double cutoff, cutoffLow, rswitch;
   bool doTailCorr, vdwGeometricSigma;
   std::string kind;
-
-  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6, COUL_DSP, COUL_DSF;
-  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND, COUL_DSP_KIND, COUL_DSF_KIND;
+  static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
+  static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
+  static const std::string COUL_DSP, COUL_DSF;
+  static const std::string WOLF_VLUGT, WOLF_GROSS, WOLF_HYBRID;
+  static const uint COUL_DSP_KIND, COUL_DSF_KIND;
+  static const uint WOLF_VLUGT_KIND, WOLF_GROSS_KIND, WOLF_HYBRID_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT
@@ -201,6 +204,7 @@ struct ElectroStatic {
   bool readCache;
   bool readWolfAlpha[BOX_TOTAL];
   bool readWolfType;
+  bool readWolfKind;
   bool enable;
   bool ewald;
   bool wolf;
@@ -211,9 +215,6 @@ struct ElectroStatic {
   double dielectric;
   double cutoffCoulomb[BOX_TOTAL];
   double wolfAlpha[BOX_TOTAL];
-  uint COUL_KIND;
-  static const std::string COUL_DSP, COUL_DSF;
-  static const uint COUL_DSP_KIND, COUL_DSF_KIND;
   ElectroStatic(void)
   {
     std::fill_n(cutoffCoulombRead, BOX_TOTAL, false);
