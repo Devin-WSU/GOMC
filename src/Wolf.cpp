@@ -79,6 +79,10 @@ void Wolf::Init() {
       // Store this for quick access in ChangeSelf
       molSelfEnergies[i] = molSelfEnergy;
     }
+
+    oneThree = ff.OneThree;
+    oneFour = ff.OneFour;
+    scaling_14 = ff.scaling_14;
 }
 
 void Wolf::AllocMem()
@@ -218,9 +222,28 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     for (uint j = i + 1; j < atomSize; j++) {
       // Need to check for cutoff
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box)){
-        // We eliminate the dampened rij term by choosing psi = 1
-        correction += -1.0 * thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+                         start + i, start + j, box) && 
+        distSq < forcefield.rCutCoulomb[box]){
+        dist = sqrt(distSq);
+        dampenedCorr = 0.0;
+        // Always Exlucde 1-2
+        if (i + 1 == j){
+          // Do nothing
+        } else if (i + 2 == j && oneThree) {
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        }
+        if(i + 3 == j && oneFour){
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        } else {
+          // Unscaled
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        }
+        dampenedCorr -= wolfFactor1[box];
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
     }
   }
@@ -271,9 +294,7 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
   uint atomSize = thisKind.NumAtoms();
   double en_self = 0.0;
 
-  for (uint i = 0; i < atomSize; i++) {
-    en_self -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(i));
-  }    
+  en_self = molSelfEnergies[thisKind.kindIndex];
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
   // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
@@ -292,21 +313,41 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
   double dist, distSq;
-  double correction = 0.0;
+  double correction = 0.0, dampenedCorr = 0.0;
   XYZ virComponents;
   const MoleculeKind& thisKind = trialMol.GetKind();
   uint atomSize = thisKind.NumAtoms();
 
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box)){
-        correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * wolfFactor1[box];
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box) && 
+        distSq < forcefield.rCutCoulomb[box]){
+        dist = sqrt(distSq);
+        dampenedCorr = 0.0;
+        // Always Exlucde 1-2
+        if (i + 1 == j){
+          // Do nothing
+        } else if (i + 2 == j && oneThree) {
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        }
+        if(i + 3 == j && oneFour){
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        } else {
+          // Unscaled
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        }
+        dampenedCorr -= wolfFactor1[box];
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
       }
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
-  return num::qqFact * correction;
+  return -1.0 * num::qqFact * correction;
 }
 //calculate correction term after swap move
 double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
@@ -318,7 +359,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
 
   GOMC_EVENT_START(1, GomcProfileEvent::CORR_SWAP);
   double dist, distSq;
-  double correction = 0.0;
+  double correction = 0.0, dampenedCorr = 0.0;
   XYZ virComponents;
   const MoleculeKind& thisKind = trialMol.GetKind();
   uint atomSize = thisKind.NumAtoms();
@@ -330,16 +371,35 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box)){
-        // We eliminate the dampened rij term by choosing psi = 1
-        correction -= thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                      wolfFactor1[box];
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box) && 
+        distSq < forcefield.rCutCoulomb[box]){
+        dist = sqrt(distSq);
+        dampenedCorr = 0.0;
+        // Always Exlucde 1-2
+        if (i + 1 == j){
+          // Do nothing
+        } else if (i + 2 == j && oneThree) {
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        }
+        if(i + 3 == j && oneFour){
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        } else {
+          // Unscaled
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        }
+        dampenedCorr -= wolfFactor1[box];
+        correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                      dampenedCorr;
       }
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
-  return num::qqFact * correction * lambdaCoef * lambdaCoef;
+  return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
 }
 
 //It's called in free energy calculation to calculate the change in
@@ -379,7 +439,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
   uint atomSize = mols.GetKind(molIndex).NumAtoms();
   uint start = mols.MolStart(molIndex);
   uint lambdaSize = lambda_Coul.size();
-  double coefDiff, distSq, dist, correction = 0.0;
+  double coefDiff, distSq, dist, correction = 0.0, dampenedCorr;
   XYZ virComponents;
 
   //Calculate the correction energy with lambda = 1
@@ -391,9 +451,28 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
     for (uint j = i + 1; j < atomSize; j++) {
       distSq = 0.0;
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box)){
-        // We eliminate the dampened rij term by choosing psi = 1
-        correction += particleCharge[i + start] * particleCharge[j + start] * wolfFactor1[box];
+                         start + i, start + j, box) && 
+        distSq < forcefield.rCutCoulomb[box]){
+        dist = sqrt(distSq);
+        dampenedCorr = 0.0;
+        // Always Exlucde 1-2
+        if (i + 1 == j){
+          // Do nothing
+        } else if (i + 2 == j && oneThree) {
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        }
+        if(i + 3 == j && oneFour){
+          // Eq (5) Rahbari 2019, 2nd term
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;          
+          dampenedCorr *= scaling_14;
+        } else {
+          // Unscaled
+          dampenedCorr = erfc(wolfAlpha[box] * dist)/dist;
+        }
+        dampenedCorr -= wolfFactor1[box];
+        correction += particleCharge[i + start] * particleCharge[j + start] * dampenedCorr;
       }
     }
   }
