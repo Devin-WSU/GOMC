@@ -184,7 +184,7 @@ double Wolf::BoxSelf(uint box) const
 // Each thread calculates a kind
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length, molNum, lambdaCoef) \
-    shared(box, molSelfEnergies) \
+    shared(box) \
     reduction(+:self)
 #endif
         for (i = 0; i < mols.GetKindsCount(); i++) {
