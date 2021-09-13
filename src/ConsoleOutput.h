@@ -67,7 +67,7 @@ public:
   virtual void DoOutput(const ulong step);
   virtual void DoOutputRestart(const ulong step);
 private:
-  const static int elementWidth = 16;
+  const static int elementWidth = 30;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
   bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;

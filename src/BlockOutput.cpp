@@ -15,7 +15,7 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 
 #include <iostream> //for endl;
 
-#define OUTPUTWIDTH 16
+#define OUTPUTWIDTH 30
 
 void BlockAverage::Init(std::ofstream* file0,
                         std::ofstream* file1,
@@ -139,9 +139,9 @@ void BlockAverages::DoOutput(const ulong step)
   outBlock1 << std::left << std::scientific << std::setw(OUTPUTWIDTH) << nextStep;
   for (uint v = 0; v < totalBlocks; ++v) {
     if(v < out::TOTAL_SINGLE)
-      blocks[v].Write(firstPrint, 8);
+      blocks[v].Write(firstPrint, 17);
     else
-      blocks[v].Write(firstPrint, 8);
+      blocks[v].Write(firstPrint, 17);
   }
   outBlock0 << std::endl;
   if(outBlock1.is_open())

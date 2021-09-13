@@ -282,16 +282,16 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   title += numStr + ":";
   printElementStep(title, step + 1, elementWidth);
 
-  printElement(en.total, elementWidth);
-  printElement(en.intraBond, elementWidth);
-  printElement(en.intraNonbond, elementWidth);
-  printElement(en.inter, elementWidth);
-  printElement(en.tc, elementWidth);
-  printElement(en.totalElect, elementWidth);
-  printElement(en.real, elementWidth);
+  printElement(en.total, elementWidth, 17);
+  printElement(en.intraBond, elementWidth, 17);
+  printElement(en.intraNonbond, elementWidth, 17);
+  printElement(en.inter, elementWidth, 17);
+  printElement(en.tc, elementWidth, 17);
+  printElement(en.totalElect, elementWidth, 17);
+  printElement(en.real, elementWidth, 17);
   printElement(en.recip, elementWidth);
-  printElement(en.self, elementWidth);
-  printElement(en.correction, elementWidth);
+  printElement(en.self, elementWidth, 17);
+  printElement(en.correction, elementWidth, 17);
   if (enablePressure)
     printElement((en.total / var->numByBox[box] + var->pressure[box] * var->volumeRef[box] / var->numByBox[box]) * UNIT_CONST_H::unit::K_TO_KJ_PER_MOL, elementWidth);
   std::cout << std::endl;
