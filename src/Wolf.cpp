@@ -68,7 +68,7 @@ void Wolf::Init() {
 // Each thread calculates a kind
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length) \
-    shared(mols, molLookup, lambdaRef, molSelfEnergies)
+    shared(molSelfEnergies)
 #endif
     for (i = 0; i < mols.GetKindsCount(); i++) {
       MoleculeKind const& thisKind = mols.kinds[i];
@@ -184,7 +184,7 @@ double Wolf::BoxSelf(uint box) const
 // Each thread calculates a kind
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length, molNum, lambdaCoef) \
-    shared(box, mols, molLookup, lambdaRef, molSelfEnergies) \
+    shared(box, molSelfEnergies) \
     reduction(+:self)
 #endif
         for (i = 0; i < mols.GetKindsCount(); i++) {
