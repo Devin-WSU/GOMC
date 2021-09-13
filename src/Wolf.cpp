@@ -64,11 +64,12 @@ void Wolf::Init() {
     double molSelfEnergy;
     uint i, j, length;
     molSelfEnergies.resize(mols.kindsCount);
+    std::vector<double> & molSelfEnergiesRef = molSelfEnergies;
 
 // Each thread calculates a kind
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length) \
-    shared(molSelfEnergies)
+    shared(molSelfEnergiesRef)
 #endif
     for (i = 0; i < mols.GetKindsCount(); i++) {
       MoleculeKind const& thisKind = mols.kinds[i];
@@ -78,7 +79,7 @@ void Wolf::Init() {
           molSelfEnergy += (thisKind.AtomCharge(j) * thisKind.AtomCharge(j));
       }
       // Store this for quick access in ChangeSelf
-      molSelfEnergies[i] = molSelfEnergy;
+      molSelfEnergiesRef[i] = molSelfEnergy;
     }
 
     oneThree = ff.OneThree;
@@ -180,11 +181,12 @@ double Wolf::BoxSelf(uint box) const
         double molSelfEnergy;
         uint i, j, length, molNum;
         double lambdaCoef = 1.0;
+        const std::vector<double> & molSelfEnergiesRef = molSelfEnergies;
 
 // Each thread calculates a kind
 #ifdef _OPENMP
     #pragma omp parallel for default(none) private(molSelfEnergy, i, j, length, molNum, lambdaCoef) \
-    shared(box) \
+    shared(box, molSelfEnergiesRef) \
     reduction(+:self)
 #endif
         for (i = 0; i < mols.GetKindsCount(); i++) {
@@ -199,7 +201,7 @@ double Wolf::BoxSelf(uint box) const
               lambdaCoef = lambdaRef.GetLambdaCoulomb(i, box);
           }
           // Store this for quick access in ChangeSelf
-          molSelfEnergy = molSelfEnergies[i];
+          molSelfEnergy = molSelfEnergiesRef[i];
           self += (molSelfEnergy * molNum);
           if(lambdaRef.KindIsFractional(i, box)) {
               //Add the fractional molecule part
