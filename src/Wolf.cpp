@@ -33,7 +33,7 @@ Wolf::Wolf(StaticVals & stat, System & sys) :
     for(uint b = 0 ; b < BOX_TOTAL; b++) {
         wolfAlpha[b] = ff.wolfAlpha[b];
         wolfFactor1[b] = ff.wolfFactor1[b];
-        rCutCoulomb[b] = ff.rCutCoulomb[b];
+        rCutCoulombSq[b] = ff.rCutCoulombSq[b];
     }
 }
 
@@ -250,7 +250,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
       // Need to check for cutoff for all kinds
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < rCutCoulomb[box]){
+        distSq < rCutCoulombSq[box]){
           dampenedCorr = 0.0;
           // Gross scales intra dampened by sf
           if (isGrossWolf || isVlugtWolf){
@@ -359,7 +359,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
     for (uint j = i + 1; j < atomSize; j++) {
       if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
                          i, j, box) && 
-        distSq < rCutCoulomb[box]){
+        distSq < rCutCoulombSq[box]){
           dampenedCorr = 0.0;
           // Gross scales intra dampened by sf
           if (isGrossWolf || isVlugtWolf){
@@ -419,7 +419,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
     for (uint j = i + 1; j < atomSize; j++) {
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < rCutCoulomb[box]){
+        distSq < rCutCoulombSq[box]){
           dampenedCorr = 0.0;
           // Gross scales intra dampened by sf
           if (isGrossWolf || isVlugtWolf){
@@ -511,7 +511,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
       distSq = 0.0;
       if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                          start + i, start + j, box) && 
-        distSq < rCutCoulomb[box]){
+        distSq < rCutCoulombSq[box]){
           dampenedCorr = 0.0;
           // Gross scales intra dampened by sf
           if (isGrossWolf || isVlugtWolf){
