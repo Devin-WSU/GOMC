@@ -1105,11 +1105,12 @@ double Ewald::MolCorrection(uint molIndex, uint box) const
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box);
-      dist = sqrt(distSq);
-      correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box)&& distSq<ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+        correction += (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                      erf(ff.alpha[box] * dist) / dist);
+      }
     }
   }
 
@@ -1138,11 +1139,12 @@ void Ewald::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
 
     for (uint j = i + 1; j < atomSize; j++) {
       distSq = 0.0;
-      currentAxes.InRcut(distSq, virComponents, currentCoords,
-                         start + i, start + j, box);
-      dist = sqrt(distSq);
-      correction += (particleCharge[i + start] * particleCharge[j + start] *
-                     erf(ff.alpha[box] * dist) / dist);
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                         start + i, start + j, box)&& distSq<ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+        correction += (particleCharge[i + start] * particleCharge[j + start] *
+                      erf(ff.alpha[box] * dist) / dist);
+      }
     }
   }
   correction *= -1.0 * num::qqFact;
@@ -1357,12 +1359,12 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol) const
 
   for (uint i = 0; i < atomSize; i++) {
     for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box);
-
-      dist = sqrt(distSq);
-      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
+      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box)&& distSq<ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+        correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                      erf(ff.alpha[box] * dist) / dist);
+      }
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
@@ -1392,12 +1394,12 @@ double Ewald::SwapCorrection(const cbmc::TrialMol& trialMol,
       continue;
     }
     for (uint j = i + 1; j < atomSize; j++) {
-      currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                         i, j, box);
-
-      dist = sqrt(distSq);
-      correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
-                     erf(ff.alpha[box] * dist) / dist);
+      if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
+                         i, j, box) && distSq<ff.rCutCoulombSq[box]){
+        dist = sqrt(distSq);
+        correction -= (thisKind.AtomCharge(i) * thisKind.AtomCharge(j) *
+                      erf(ff.alpha[box] * dist) / dist);
+      }
     }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
