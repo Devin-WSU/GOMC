@@ -260,8 +260,8 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                             start + i, start + (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
+              dist = sqrt(distSq);
               if (isGrossWolf){
-                dist = sqrt(distSq);
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
               } else if (isHybridWolf) {
@@ -289,8 +289,8 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
           if(currentAxes.InRcut(distSq, virComponents, currentCoords,
                             start + i, start + (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
+              dist = sqrt(distSq);
               if (isGrossWolf){
-                dist = sqrt(distSq);
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
               } else if (isHybridWolf) {
