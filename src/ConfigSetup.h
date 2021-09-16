@@ -158,14 +158,14 @@ struct VDWSwitch : public PotentialConfig {
 struct FFValues {
   uint VDW_KIND, COUL_KIND, WOLF_KIND;
   double cutoff, cutoffLow, rswitch;
-  bool doTailCorr, vdwGeometricSigma, makeVlugtConsistentWithCassandra;
+  bool doTailCorr, vdwGeometricSigma;
   std::string kind;
   static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
   static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
   static const std::string COUL_DSP, COUL_DSF;
   static const std::string WOLF_VLUGT, WOLF_GROSS, WOLF_HYBRID;
   static const uint COUL_DSP_KIND, COUL_DSF_KIND;
-  static const uint WOLF_VLUGT_KIND, WOLF_GROSS_KIND, WOLF_HYBRID_KIND;
+  static const uint WOLF_VLUGT_KIND, WOLF_GROSS_KIND, WOLF_HYBRID_KIND, WOLF_CASSANDRA_KIND;
 };
 
 #if ENSEMBLE == GEMC || ENSEMBLE == NPT

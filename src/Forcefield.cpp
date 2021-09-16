@@ -44,10 +44,8 @@ void Forcefield::Init(const Setup& set)
   // Only Vlugt Wolf alters the FF behavior by removing cutoffs for Intra Undampened
   if (wolfKind == 1){
     isVlugtWolf = true;
-    makeVlugtConsistentWithCassandra = set.config.sys.ff.makeVlugtConsistentWithCassandra;
   } else {
     isVlugtWolf = false;
-    makeVlugtConsistentWithCassandra = false;
   }
 }
 

@@ -88,24 +88,34 @@ void Wolf::Init() {
     oneThree = ff.OneThree;
     oneFour = ff.OneFour;
     scaling_14 = ff.scaling_14;
+
     switch(ff.wolfKind) {
       //WOLF_HYBRID_KIND
       case 0:
         isVlugtWolf = false;
         isGrossWolf = false;
         isHybridWolf = true;
+        isCassandraWolf = false;
         break;
       // WOLF_VLUGT_KIND
       case 1:
         isVlugtWolf = true;
         isGrossWolf = false;
         isHybridWolf = false;
+        isCassandraWolf = false;
         break;
       // WOLF_GROSS_KIND
       case 2:
         isVlugtWolf = false;
         isGrossWolf = true;
         isHybridWolf = false;
+        isCassandraWolf = false;
+        break;
+      case 3:
+        isVlugtWolf = false;
+        isGrossWolf = false;
+        isHybridWolf = false;
+        isCassandraWolf = true;
         break;
       default:
         std::cout << "Error ff.WolfKind has invalid value!  Check WolfKind in Config File!" << std::endl;
@@ -250,7 +260,6 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     if(particleHasNoCharge[start + i]) {
       continue;
     }
-    if (isGrossWolf || isHybridWolf){
       if(oneThree){
         //loop over all 1-3 partners of the particle
         const uint* partner = thisKind.sortedNB_1_3.Begin(i);
@@ -267,15 +276,18 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -296,15 +308,18 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -318,46 +333,26 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
                           start + i, start + (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
-            if (isGrossWolf){
-              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-            } else if (isHybridWolf) {
-              // Exclude the entire erfc term, psi is 1
-              dampenedCorr = -1.0/dist;            
-            }
-            dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-              double distDiff = dist-rCutCoulomb[box];
-              // Subtract because we negate the correction term at the end
-              correction -= wolfFactor2[box]*distDiff;
-            } 
-        }
-        ++partner;
-      }
-    } else if (isVlugtWolf) {
-        for (uint j = i + 1; j < atomSize; j++) {
-          if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            i, j, box) && 
-            distSq < rCutCoulombSq[box]){
-              dampenedCorr = 0.0;
-              dist = sqrt(distSq);
-              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+              if (isGrossWolf){
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+              } else if (isHybridWolf) {
+                // Exclude the entire erfc term, psi is 1
+                dampenedCorr = -1.0/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+              }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
-          // Vlugt doesnt check cutoff for intramol real
-          } else if (!makeVlugtConsistentWithCassandra) {
-            dist = sqrt(distSq);
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
-          }
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
         }
-    }
+        ++partner;
+      }      
   }
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_MOL);
@@ -435,8 +430,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
     if(thisKind.AtomCharge(i) < 0.000000001) {
       continue;
     }
-    if (isGrossWolf || isHybridWolf){
-      if(oneThree){
+    if(oneThree){
         //loop over all 1-3 partners of the particle
         const uint* partner = thisKind.sortedNB_1_3.Begin(i);
         const uint* end = thisKind.sortedNB_1_3.End(i);
@@ -452,15 +446,18 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -481,15 +478,18 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -503,47 +503,27 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
-            if (isGrossWolf){
-              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-            } else if (isHybridWolf) {
+              if (isGrossWolf){
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+              } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -1.0/dist;
-            }
-            dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+              }
+              dampenedCorr -= wolfFactor1[box];
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-              double distDiff = dist-rCutCoulomb[box];
-              // Subtract because we negate the correction term at the end
-              correction -= wolfFactor2[box]*distDiff;
-            } 
+              if(coulKind && isCassandraWolf){
+                double distDiff = dist-rCutCoulomb[box];
+                // Subtract because we negate the correction term at the end
+                correction -= wolfFactor2[box]*distDiff;
+              } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
         }
         ++partner;
       }
-    } else if (isVlugtWolf) {
-      for (uint j = i + 1; j < atomSize; j++) {
-        if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                          i, j, box) && 
-          distSq < rCutCoulombSq[box]){
-            dampenedCorr = 0.0;
-            dist = sqrt(distSq);
-            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
-            dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-              double distDiff = dist-rCutCoulomb[box];
-              // Subtract because we negate the correction term at the end
-              correction -= wolfFactor2[box]*distDiff;
-            } 
-        // Vlugt doesnt check cutoff for intramol real
-        } else if (!makeVlugtConsistentWithCassandra) {
-            dist = sqrt(distSq);
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
-        }
-      }
-    }
-  }
+    }      
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
   return -1.0 * num::qqFact * correction;
 }
@@ -565,10 +545,9 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
   double lambdaCoef = GetLambdaCoef(molIndex, box);
 
   for (uint i = 0; i < atomSize; i++) {
-    if(particleHasNoCharge[start + i]) {
-      continue;
-    }
-    if (isGrossWolf || isHybridWolf){
+      if(particleHasNoCharge[start + i]) {
+        continue;
+      }
       if(oneThree){
         //loop over all 1-3 partners of the particle
         const uint* partner = thisKind.sortedNB_1_3.Begin(i);
@@ -585,15 +564,18 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -614,15 +596,18 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
               } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -scaling_14/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
               }
               dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+              if(coulKind && isCassandraWolf){
                 double distDiff = dist-rCutCoulomb[box];
                 // Subtract because we negate the correction term at the end
                 correction -= wolfFactor2[box]*distDiff;
               } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
           }
           ++partner;
         }
@@ -636,46 +621,26 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
-            if (isGrossWolf){
-              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-            } else if (isHybridWolf) {
-              // Exclude the entire erfc term, psi is 1
-              dampenedCorr = -1.0/dist;
-            }
-            dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+              if (isGrossWolf){
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+              } else if (isHybridWolf) {
+                // Exclude the entire erfc term, psi is 1
+                dampenedCorr = -1.0/dist;
+              } else if (isVlugtWolf || isCassandraWolf) {
+                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+              }
+              dampenedCorr -= wolfFactor1[box];
               // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-              double distDiff = dist-rCutCoulomb[box];
-              // Subtract because we negate the correction term at the end
-              correction -= wolfFactor2[box]*distDiff;
-            } 
+              if(coulKind && isCassandraWolf){
+                double distDiff = dist-rCutCoulomb[box];
+                // Subtract because we negate the correction term at the end
+                correction -= wolfFactor2[box]*distDiff;
+              } 
+              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
         }
         ++partner;
       }
-    } else if (isVlugtWolf) {
-      for (uint j = i + 1; j < atomSize; j++) {
-        if(currentAxes.InRcut(distSq, virComponents, trialMol.GetCoords(),
-                          i, j, box) && 
-          distSq < rCutCoulombSq[box]){
-            dampenedCorr = 0.0;
-            dist = sqrt(distSq);
-            dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
-            dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-              double distDiff = dist-rCutCoulomb[box];
-              // Subtract because we negate the correction term at the end
-              correction -= wolfFactor2[box]*distDiff;
-            } 
-        // Vlugt doesnt check cutoff for intramol real
-        } else if (!makeVlugtConsistentWithCassandra) {
-            dist = sqrt(distSq);
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
-        }
-      }
-    }
   }
   GOMC_EVENT_STOP(1, GomcProfileEvent::CORR_SWAP);
   return -1.0 * num::qqFact * correction * lambdaCoef * lambdaCoef;
@@ -732,113 +697,97 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
     if(particleHasNoCharge[start + i]) {
       continue;
     }
-    if (isGrossWolf || isHybridWolf){
-      if(oneThree){
-        //loop over all 1-3 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_3.Begin(i);
-        const uint* end = thisKind.sortedNB_1_3.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box) && 
-            distSq < rCutCoulombSq[box] && i < (*partner)){
-              dist = sqrt(distSq);
-              if (isGrossWolf){
-                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-                dampenedCorr *= scaling_14;
-              } else if (isHybridWolf) {
-                // Exclude the entire erfc term, psi is 1
-                dampenedCorr = -scaling_14/dist;
-              }
-              dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-                double distDiff = dist-rCutCoulomb[box];
-                // Subtract because we negate the correction term at the end
-                correction -= wolfFactor2[box]*distDiff;
-              } 
-          }
-          ++partner;
-        }
-      }
-      if(oneFour){
-        //loop over all 1-4 partners of the particle
-        const uint* partner = thisKind.sortedNB_1_4.Begin(i);
-        const uint* end = thisKind.sortedNB_1_4.End(i);
-        while (partner != end) {
-          // Need to check for cutoff for all kinds
-          if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            start + i, start + (*partner), box) && 
-            distSq < rCutCoulombSq[box] && i < (*partner)){
-              dist = sqrt(distSq);
-              if (isGrossWolf){
-                dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-                dampenedCorr *= scaling_14;
-              } else if (isHybridWolf) {
-                // Exclude the entire erfc term, psi is 1
-                dampenedCorr = -scaling_14/dist;
-              }
-              dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-                double distDiff = dist-rCutCoulomb[box];
-                // Subtract because we negate the correction term at the end
-                correction -= wolfFactor2[box]*distDiff;
-              } 
-          }
-          ++partner;
-        }
-      }
-      //loop over all 1-N partners of the particle
-      const uint* partner = thisKind.sortedNB.Begin(i);
-      const uint* end = thisKind.sortedNB.End(i);
+    if(oneThree){
+      //loop over all 1-3 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_3.Begin(i);
+      const uint* end = thisKind.sortedNB_1_3.End(i);
       while (partner != end) {
         // Need to check for cutoff for all kinds
         if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          start + i, start + (*partner), box) && 
+                          i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            if (isGrossWolf){
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+              dampenedCorr *= scaling_14;
+            } else if (isHybridWolf) {
+              // Exclude the entire erfc term, psi is 1
+              dampenedCorr = -scaling_14/dist;
+            } else if (isVlugtWolf || isCassandraWolf) {
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+            }
+            dampenedCorr -= wolfFactor1[box];
+            // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+            if(coulKind && isCassandraWolf){
+              double distDiff = dist-rCutCoulomb[box];
+              // Subtract because we negate the correction term at the end
+              correction -= wolfFactor2[box]*distDiff;
+            } 
+            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
+        }
+        ++partner;
+      }
+    }
+    if(oneFour){
+      //loop over all 1-4 partners of the particle
+      const uint* partner = thisKind.sortedNB_1_4.Begin(i);
+      const uint* end = thisKind.sortedNB_1_4.End(i);
+      while (partner != end) {
+        // Need to check for cutoff for all kinds
+        if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                          i, (*partner), box) && 
+          distSq < rCutCoulombSq[box] && i < (*partner)){
+            dist = sqrt(distSq);
+            if (isGrossWolf){
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
+              dampenedCorr *= scaling_14;
+            } else if (isHybridWolf) {
+              // Exclude the entire erfc term, psi is 1
+              dampenedCorr = -scaling_14/dist;
+            } else if (isVlugtWolf || isCassandraWolf) {
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
+            }
+            dampenedCorr -= wolfFactor1[box];
+            // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+            if(coulKind && isCassandraWolf){
+              double distDiff = dist-rCutCoulomb[box];
+              // Subtract because we negate the correction term at the end
+              correction -= wolfFactor2[box]*distDiff;
+            } 
+            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
+
+        }
+        ++partner;
+      }
+    }
+    //loop over all 1-N partners of the particle
+    const uint* partner = thisKind.sortedNB.Begin(i);
+    const uint* end = thisKind.sortedNB.End(i);
+    while (partner != end) {
+      // Need to check for cutoff for all kinds
+      if(currentAxes.InRcut(distSq, virComponents, currentCoords,
+                        i, (*partner), box) && 
+        distSq < rCutCoulombSq[box] && i < (*partner)){
+          dist = sqrt(distSq);
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
             } else if (isHybridWolf) {
               // Exclude the entire erfc term, psi is 1
               dampenedCorr = -1.0/dist;
+            } else if (isVlugtWolf || isCassandraWolf) {
+              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
             }
             dampenedCorr -= wolfFactor1[box];
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
+            // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+            if(coulKind && isCassandraWolf){
               double distDiff = dist-rCutCoulomb[box];
               // Subtract because we negate the correction term at the end
               correction -= wolfFactor2[box]*distDiff;
             } 
-        }
-        ++partner;
+            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(*partner) * dampenedCorr;
       }
-    } else if (isVlugtWolf) {
-        for (uint j = i + 1; j < atomSize; j++) {
-          if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                            i, j, box) && 
-            distSq < rCutCoulombSq[box]){
-              dampenedCorr = 0.0;
-              dist = sqrt(distSq);
-              dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;   
-              dampenedCorr -= wolfFactor1[box];
-              correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) * dampenedCorr;
-              // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
-              if(coulKind){
-                double distDiff = dist-rCutCoulomb[box];
-                // Subtract because we negate the correction term at the end
-                correction -= wolfFactor2[box]*distDiff;
-              } 
-          // Vlugt doesnt check cutoff for intramol real
-          } else if (!makeVlugtConsistentWithCassandra) {
-            dist = sqrt(distSq);
-            correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
-          }
-        }
+      ++partner;
     }
   }
   correction *= -1.0 * num::qqFact;

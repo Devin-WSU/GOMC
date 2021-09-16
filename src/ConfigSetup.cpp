@@ -34,7 +34,6 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.ewald = false;
   sys.elect.enable = false;
   sys.elect.wolf = false;
-  sys.ff.makeVlugtConsistentWithCassandra = false;
   sys.ff.WOLF_KIND = UINT_MAX;
   sys.ff.COUL_KIND = UINT_MAX;
   sys.elect.cache = false;
@@ -648,14 +647,6 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                             "Example : Wolf\tTrue\tDSP" << std::endl;
             }
           }
-    } else if (CheckString(line[0], "makeVlugtConsistentWithCassandra")){
-      if (line.size() == 2){
-        sys.ff.makeVlugtConsistentWithCassandra = checkBool(line[1]);
-      } else {
-        std::cout <<  "Error: makeVlugtConsistentWithCassandra incorrectly specified!" << std::endl <<
-        "Usage : makeVlugtConsistentWithCassandra\t(true/false)" << std::endl;
-        exit(1);
-      }  
     } else if (CheckString(line[0], "WolfKind")){
           if (line.size() == 2){
             if (CheckString(line[1], "Hybrid")){
@@ -667,6 +658,10 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
               printf("%-40s %-s \n", "Info: Wolf Gross Implementation", "Active");
               sys.elect.readWolfKind = true;
             } else if (CheckString(line[1], "Vlugt")) {
+              sys.ff.WOLF_KIND = sys.ff.WOLF_VLUGT_KIND;
+              printf("%-40s %-s \n", "Info: Wolf Vlugt Implementation", "Active");
+              sys.elect.readWolfKind = true;
+            } else if (CheckString(line[1], "Cassandra")) {
               sys.ff.WOLF_KIND = sys.ff.WOLF_VLUGT_KIND;
               printf("%-40s %-s \n", "Info: Wolf Vlugt Implementation", "Active");
               sys.elect.readWolfKind = true;
@@ -2522,6 +2517,7 @@ const uint config_setup::FFValues::COUL_DSF_KIND = 1;
 const uint config_setup::FFValues::WOLF_HYBRID_KIND = 0;
 const uint config_setup::FFValues::WOLF_VLUGT_KIND = 1;
 const uint config_setup::FFValues::WOLF_GROSS_KIND = 2;
+const uint config_setup::FFValues::WOLF_CASSANDRA_KIND = 3;
 const uint config_setup::Exclude::EXC_ONETWO_KIND = 0;
 const uint config_setup::Exclude::EXC_ONETHREE_KIND = 1;
 const uint config_setup::Exclude::EXC_ONEFOUR_KIND = 2;

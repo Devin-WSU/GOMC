@@ -61,7 +61,7 @@ public:
   double sc_sigma, sc_sigma_6;    // Free energy parameter
 
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
-  bool electrostatic, ewald, wolf, isVlugtWolf, makeVlugtConsistentWithCassandra;    //To consider columb interaction
+  bool electrostatic, ewald, wolf, isVlugtWolf, makeVlugtConsistentWithCassandra, useDSFIntra;    //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
   bool isMartini;
   bool exp6;
