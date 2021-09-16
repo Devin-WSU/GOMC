@@ -270,6 +270,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
                             start + i, start + (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -302,6 +303,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
                             start + i, start + (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -332,6 +334,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
                           start + i, start + (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               } else if (isHybridWolf) {
@@ -438,6 +441,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
                             i, (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -469,6 +473,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
                             i, (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -499,6 +504,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               } else if (isHybridWolf) {
@@ -553,6 +559,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
                             i, (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -584,6 +591,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
                             i, (*partner), box) && 
             distSq < rCutCoulombSq[box] && i < (*partner)){
               dist = sqrt(distSq);
+              dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
                 dampenedCorr *= scaling_14;
@@ -614,6 +622,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            dampenedCorr = 0.0;
               if (isGrossWolf){
                 dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               } else if (isHybridWolf) {
@@ -699,6 +708,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            dampenedCorr = 0.0;
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               dampenedCorr *= scaling_14;
@@ -730,6 +740,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                           i, (*partner), box) && 
           distSq < rCutCoulombSq[box] && i < (*partner)){
             dist = sqrt(distSq);
+            dampenedCorr = 0.0;
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
               dampenedCorr *= scaling_14;
@@ -760,6 +771,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                         i, (*partner), box) && 
         distSq < rCutCoulombSq[box] && i < (*partner)){
           dist = sqrt(distSq);
+          dampenedCorr = 0.0;
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
             } else if (isHybridWolf) {
