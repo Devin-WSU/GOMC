@@ -352,7 +352,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
                 correction -= wolfFactor2[box]*distDiff;
               } 
           // Vlugt doesnt check cutoff for intramol real
-          } else {
+          } else if (!makeVlugtConsistentWithCassandra) {
             dist = sqrt(distSq);
             correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
           }
@@ -537,7 +537,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
               correction -= wolfFactor2[box]*distDiff;
             } 
         // Vlugt doesnt check cutoff for intramol real
-        } else {
+        } else if (!makeVlugtConsistentWithCassandra) {
             dist = sqrt(distSq);
             correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
         }
@@ -670,7 +670,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
               correction -= wolfFactor2[box]*distDiff;
             } 
         // Vlugt doesnt check cutoff for intramol real
-        } else {
+        } else if (!makeVlugtConsistentWithCassandra) {
             dist = sqrt(distSq);
             correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
         }
@@ -834,7 +834,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
                 correction -= wolfFactor2[box]*distDiff;
               } 
           // Vlugt doesnt check cutoff for intramol real
-          } else {
+          } else if (!makeVlugtConsistentWithCassandra) {
             dist = sqrt(distSq);
             correction += thisKind.AtomCharge(i) * thisKind.AtomCharge(j) / dist;
           }

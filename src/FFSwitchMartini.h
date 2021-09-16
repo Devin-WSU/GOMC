@@ -256,7 +256,7 @@ inline void FF_SWITCH_MARTINI::CalcCoulombAdd_1_4(double& en,
     const double qi_qj_Fact,
     const bool NB, const uint box) const
 {
-  if(forcefield.rCutCoulombSq[box] < distSq && !forcefield.isVlugtWolf)
+  if(forcefield.rCutCoulombSq[box] < distSq && (!forcefield.isVlugtWolf || forcefield.makeVlugtConsistentWithCassandra))
     return;
 
   double dist = sqrt(distSq);

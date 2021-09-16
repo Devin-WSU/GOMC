@@ -34,6 +34,7 @@ ConfigSetup::ConfigSetup(void)
   sys.elect.ewald = false;
   sys.elect.enable = false;
   sys.elect.wolf = false;
+  sys.ff.makeVlugtConsistentWithCassandra = false;
   sys.ff.WOLF_KIND = UINT_MAX;
   sys.ff.COUL_KIND = UINT_MAX;
   sys.elect.cache = false;
@@ -647,6 +648,14 @@ void ConfigSetup::Init(const char *fileName, MultiSim const*const& multisim)
                             "Example : Wolf\tTrue\tDSP" << std::endl;
             }
           }
+    } else if (CheckString(line[0], "makeVlugtConsistentWithCassandra")){
+      if (line.size() == 2){
+        sys.ff.makeVlugtConsistentWithCassandra = checkBool(line[1]);
+      } else {
+        std::cout <<  "Error: makeVlugtConsistentWithCassandra incorrectly specified!" << std::endl <<
+        "Usage : makeVlugtConsistentWithCassandra\t(true/false)" << std::endl;
+        exit(1);
+      }  
     } else if (CheckString(line[0], "WolfKind")){
           if (line.size() == 2){
             if (CheckString(line[1], "Hybrid")){

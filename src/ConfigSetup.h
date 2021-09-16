@@ -158,7 +158,7 @@ struct VDWSwitch : public PotentialConfig {
 struct FFValues {
   uint VDW_KIND, COUL_KIND, WOLF_KIND;
   double cutoff, cutoffLow, rswitch;
-  bool doTailCorr, vdwGeometricSigma;
+  bool doTailCorr, vdwGeometricSigma, makeVlugtConsistentWithCassandra;
   std::string kind;
   static const std::string VDW, VDW_SHIFT, VDW_SWITCH, VDW_EXP6;
   static const uint VDW_STD_KIND, VDW_SHIFT_KIND, VDW_SWITCH_KIND, VDW_EXP6_KIND;
