@@ -222,15 +222,15 @@ double Wolf::BoxSelf(uint box) const
           }
         }
         // M_2_SQRTPI is 2/sqrt(PI), so need to multiply by 0.5 to get sqrt(PI)
-        if (isVlugtWolf){
+        if (isVlugtWolf || isCassandraWolf){
           self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]);
         } else {
           // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
-          self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
+          self *= ff.wolfFactor1[box];
         }
 
         GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_BOX);
-        return self;
+        return -1.0 * self * num::qqFact;
     }
 }
 
@@ -405,8 +405,8 @@ double Wolf::SwapSelf(const cbmc::TrialMol& trialMol) const
   en_self = molSelfEnergies[thisKind.kindIndex];
 
   GOMC_EVENT_STOP(1, GomcProfileEvent::SELF_SWAP);
-  if (isVlugtWolf){
-    return (en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]));
+  if (isVlugtWolf || isCassandraWolf){
+    return (en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]) * num::qqFact) ;
   } else {
     // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
     return (en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact);
@@ -663,8 +663,8 @@ void Wolf::ChangeSelf(Energy *energyDiff, Energy &dUdL_Coul,
     //Vlugt
     //en_self *= ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) +  ff.wolfFactor1[box] );
     // We eliminate the alpha/root(pi) using Wolf,mod
-    if (isVlugtWolf){
-      en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]);
+    if (isVlugtWolf || isCassandraWolf){
+      en_self *= -1.0 * ((ff.wolfAlpha[box] * M_2_SQRTPI * 0.5) + ff.wolfFactor1[box]) * num::qqFact;
     } else {
       // we eliminate the alpha/root(pi) using Wolf,mod from Gross et al
       en_self *= -1.0 * ff.wolfFactor1[box] * num::qqFact;
