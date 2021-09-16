@@ -305,7 +305,6 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
             dist = sqrt(distSq);
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-              dampenedCorr *= scaling_14;
             } else if (isHybridWolf) {
               // Exclude the entire erfc term, psi is 1
               dampenedCorr = -1.0/dist;            
@@ -467,7 +466,6 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
             dist = sqrt(distSq);
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-              dampenedCorr *= scaling_14;
             } else if (isHybridWolf) {
                 // Exclude the entire erfc term, psi is 1
                 dampenedCorr = -1.0/dist;
@@ -577,7 +575,6 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol,
             dist = sqrt(distSq);
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-              dampenedCorr *= scaling_14;
             } else if (isHybridWolf) {
               // Exclude the entire erfc term, psi is 1
               dampenedCorr = -1.0/dist;
@@ -718,7 +715,6 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
             dist = sqrt(distSq);
             if (isGrossWolf){
               dampenedCorr = -1.0*erf(wolfAlpha[box] * dist)/dist;  
-              dampenedCorr *= scaling_14;
             } else if (isHybridWolf) {
               // Exclude the entire erfc term, psi is 1
               dampenedCorr = -1.0/dist;
