@@ -102,7 +102,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
       wolfFactor1[b] = erfc(wolfAlpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
       wolfFactor2[b] = wolfAlpha[b] *  M_2_SQRTPI;
       wolfFactor2[b] *= exp(-1.0*pow(wolfAlpha[b], 2.0)*rCutCoulombSq[b])/rCutCoulomb[b];
-      wolfFactor2[b] += wolfFactor1[b]/rCutCoulomb[b];
+      wolfFactor2[b] += wolfFactor1[b]/rCutCoulombSq[b];
       wolfFactor3[b] = wolfAlpha[b] *  M_2_SQRTPI;
     }
   }
