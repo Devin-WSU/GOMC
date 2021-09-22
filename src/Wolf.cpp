@@ -349,7 +349,7 @@ double Wolf::MolCorrection(uint molIndex, uint box) const
     } else if (isVlugtWolf || isCassandraWolf) {
       for (uint j = i + 1; j < atomSize; j++) {
         if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          i, j, box) && 
+                          start + i, start + j, box) && 
           distSq < rCutCoulombSq[box]){
             dampenedCorr = 0.0;
             dist = sqrt(distSq);
@@ -442,7 +442,7 @@ double Wolf::SwapCorrection(const cbmc::TrialMol& trialMol) const
   uint atomSize = thisKind.NumAtoms();
 
   for (uint i = 0; i < atomSize; i++) {
-    if(thisKind.AtomCharge(i) < 0.000000001) {
+    if(std::abs(thisKind.AtomCharge(i)) < 0.000000001) {
       continue;
     }
     if (isGrossWolf || isHybridWolf){
@@ -831,7 +831,7 @@ void Wolf::ChangeCorrection(Energy *energyDiff, Energy &dUdL_Coul,
     } else if (isVlugtWolf || isCassandraWolf) {
       for (uint j = i + 1; j < atomSize; j++) {
         if(currentAxes.InRcut(distSq, virComponents, currentCoords,
-                          i, j, box) && 
+                          start + i, start + j, box) && 
           distSq < rCutCoulombSq[box]){
             dampenedCorr = 0.0;
             dist = sqrt(distSq);
