@@ -3,6 +3,7 @@
 use_cuda=0
 use_profiler=0
 use_gtest=0
+use_gcc=0
 use_mpi=0
 use_debug=0
 MPI="off"
@@ -84,13 +85,15 @@ then
 	fi
 fi
 
-while getopts 'mptd' opt; do
+while getopts 'mptgd' opt; do
     case "$opt" in
         p)
             use_profiler=1;;
         m)
             use_mpi=1
             CMAKEARGS+="-DGOMC_MPI=on ";;
+        g)
+            use_gcc=1;;
         t)
             use_gtest=1;;
         d)
@@ -101,7 +104,7 @@ while getopts 'mptd' opt; do
             echo "-t (disables Intel compiler to allow GTests to compile),"
             echo "-m, enables MPI support (Required for Parallel Tempering)"
             echo "-d, enables Debug Mode compilation"
-            echo "For combined usage: -ptm"
+            echo "For combined usage: -ptmg"
             exit 1
     esac
 done
@@ -126,15 +129,21 @@ mkdir -p bin
 cd bin
 
 if (( !$use_gtest )); then
-    ICC_PATH="$(which icc 2> /dev/null)"
-    ICPC_PATH="$(which icpc 2> /dev/null)"
-    if [ -z "$ICC_PATH" ]
+    if (( !$use_gcc )); 
     then
+        ICC_PATH="$(which icc 2> /dev/null)"
+        ICPC_PATH="$(which icpc 2> /dev/null)"
+        if [ -z "$ICC_PATH" ]
+        then
+            export CC="$(which gcc 2> /dev/null)"
+            export CXX="$(which g++ 2> /dev/null)"
+        else
+            export CC=${ICC_PATH}
+            export CXX=${ICPC_PATH}
+        fi
+    else
         export CC="$(which gcc 2> /dev/null)"
         export CXX="$(which g++ 2> /dev/null)"
-    else
-        export CC=${ICC_PATH}
-        export CXX=${ICPC_PATH}
     fi
 else
     if (( $use_mpi )); 
