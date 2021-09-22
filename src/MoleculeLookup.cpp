@@ -196,12 +196,11 @@ void MoleculeLookup::Init(const Molecules& mols,
     if a new run, they are depedent on the originalMolInds set below
     if a checkpointed run, they are the originalInds permuted through mol transfers */
   if (!restartFromCheckpoint){
-    originalMoleculeIndices = new uint32_t[mols.count];
-    permutedMoleculeIndices = new uint32_t[mols.count];
-    for (uint molI = 0; molI < molLookupCount; ++molI){
-      originalMoleculeIndices[molI] = molI;
-      permutedMoleculeIndices[molI] = molI;
-    }
+    originalMoleculeIndices.resize(molLookupCount);
+    permutedMoleculeIndices.resize(molLookupCount);
+    // fills the vectors from 0 to N-1
+    std::iota(originalMoleculeIndices.begin(), originalMoleculeIndices.end(), 0);
+    std::iota(permutedMoleculeIndices.begin(), permutedMoleculeIndices.end(), 0);
   }
 
 // allocate and set gpu variables

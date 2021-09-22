@@ -132,9 +132,9 @@ void CheckpointSetup::SetMolecules(Molecules& mols)
 
 void CheckpointSetup::SetMoleculeIndices(MoleculeLookup& molLookupRef){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
+  molLookupRef.originalMoleculeIndices = chkObj.originalMoleculeIndicesVec;
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
+  molLookupRef.permutedMoleculeIndices = chkObj.permutedMoleculeIndicesVec;
 }
 
 void CheckpointSetup::SetMoleculeKindDictionary(Molecules& mols){
@@ -191,9 +191,9 @@ void CheckpointSetup::SetMolecules()
 
 void CheckpointSetup::SetMoleculeIndices(){
   /* Original Mol Indices are for constant trajectory output from start to finish of a single run*/
-  molLookupRef.originalMoleculeIndices = vect::transfer<uint32_t>(chkObj.originalMoleculeIndicesVec);
+  molLookupRef.originalMoleculeIndices = chkObj.originalMoleculeIndicesVec;
   /* Permuted Mol Indices are for following single molecules as molLookup permutes the indices and continuing the next run*/
-  molLookupRef.permutedMoleculeIndices = vect::transfer<uint32_t>(chkObj.permutedMoleculeIndicesVec);
+  molLookupRef.permutedMoleculeIndices = chkObj.permutedMoleculeIndicesVec;
 }
 
 
