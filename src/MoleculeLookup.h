@@ -129,7 +129,7 @@ public:
   }
 
   // determine if molecule is in this box or not
-  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box)
+  bool IsMoleculeInBox(const uint &molIdx, const uint &kindIdx, const uint &box) const
   {
     uint index = std::find(
                   molLookup + boxAndKindStart[box * numKinds + kindIdx],

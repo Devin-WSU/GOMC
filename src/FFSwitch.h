@@ -67,7 +67,7 @@ public:
                                 const double lambda, const uint b) const;
   virtual void CalcCoulombAdd_1_4(double& en, const double distSq,
                                   const double qi_qj_Fact,
-                                  const bool NB) const;
+                                  const bool NB, const uint box) const;
 
   //!Returns Ezero, no energy correction
   virtual double EnergyLRC(const uint kind1, const uint kind2) const
@@ -145,9 +145,9 @@ inline void FF_SWITCH::CalcAdd_1_4(double& en, const double distSq,
 
 inline void FF_SWITCH::CalcCoulombAdd_1_4(double& en, const double distSq,
     const double qi_qj_Fact,
-    const bool NB) const
+    const bool NB, const uint box) const
 {
-  if(forcefield.rCutSq < distSq)
+  if(forcefield.rCutCoulombSq[box] < distSq && !forcefield.isVlugtWolf)
     return;
 
   double dist = sqrt(distSq);
@@ -275,12 +275,22 @@ inline double FF_SWITCH::CalcCoulomb(const double distSq,
                                      const double qi_qj_Fact,
                                      const uint b) const
 {
+  double dist = sqrt(distSq);
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
     double val = forcefield.alpha[b] * dist;
     return qi_qj_Fact * erfc(val) / dist;
+  } else if (forcefield.wolf) {
+    // V_DSP -- (16) from Gezelter 2006
+    double wolf_electrostatic = erfc(forcefield.wolfAlpha[b] * dist)/dist;
+    wolf_electrostatic -= forcefield.wolfFactor1[b];
+    // V_DSF -- (18) from Gezelter 2006.  This potential has a force derivative continuous at cutoff
+    if(forcefield.coulKind){
+      double distDiff = dist-forcefield.rCutCoulomb[b];
+      wolf_electrostatic += forcefield.wolfFactor2[b]*distDiff;
+    } 
+    wolf_electrostatic *= qi_qj_Fact;
+    return wolf_electrostatic; 
   } else {
-    double dist = sqrt(distSq);
     double switchVal = distSq / forcefield.rCutSq - 1.0;
     switchVal *= switchVal;
     return qi_qj_Fact * switchVal / dist;
@@ -322,13 +332,26 @@ inline double FF_SWITCH::CalcCoulombVir(const double distSq,
 inline double FF_SWITCH::CalcCoulombVir(const double distSq, const double qi_qj,
                                         const uint b) const
 {
+  double dist = sqrt(distSq);
   if(forcefield.ewald) {
-    double dist = sqrt(distSq);
     // M_2_SQRTPI is 2/sqrt(PI)
     double constValue = forcefield.alpha[b] * M_2_SQRTPI;
     double expConstValue = exp(-1.0 * forcefield.alphaSq[b] * distSq);
     double temp = erfc(forcefield.alpha[b] * dist);
     return qi_qj * (temp / dist + constValue * expConstValue) / distSq;
+  } else if (forcefield.wolf){
+      // F_DSP -- (17) from Gezelter 2006
+      double wolf_electrostatic_force = erfc(forcefield.wolfAlpha[b] * dist)/distSq;
+      wolf_electrostatic_force += forcefield.wolfFactor3[b]*exp(-1.0*pow(forcefield.wolfAlpha[b], 2.0)*distSq)/dist;
+      // F_DSF -- (19) from Gezelter 2006.  This force is continuous at cutoff
+      if(forcefield.coulKind){
+        wolf_electrostatic_force -= forcefield.wolfFactor2[b];
+      } 
+      wolf_electrostatic_force *= qi_qj;      
+      //      return wolf_electrostatic_force; 
+      // Since GOMC converts the force vectors to unit vectors
+      // Divide by the magnitude
+      return wolf_electrostatic_force/dist; 
   } else {
     double dist = sqrt(distSq);
     double switchVal = distSq / forcefield.rCutSq - 1.0;

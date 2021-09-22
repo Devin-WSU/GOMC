@@ -203,6 +203,10 @@ public:
                     const std::vector<double> &lambda_Coul,
                     const uint iState, const uint molIndex,
                     const uint box) const;
+
+  #if GOMC_GTEST || GOMC_GTEST_MPI
+  double GetCharge(int atomIndex);
+  #endif
 private:
 
   //! Calculates full TC energy for one box in current system
@@ -297,7 +301,7 @@ private:
   double GetLambdaVDW(uint molA, uint molB, uint box) const;
   double GetLambdaCoulomb(uint molA, uint molB, uint box) const;
   uint NumberOfParticlesInsideBox(uint box);
-
+  double CalculateWolfCorrection(uint box);
 
   const Forcefield& forcefield;
   const Molecules& mols;
@@ -308,9 +312,7 @@ private:
   XYZArray& atomForceRef;
   XYZArray& molForceRef;
   bool multiParticleEnabled;
-  bool electrostatic, ewald;
-
-  // stores kindIndex for each global atom idx
+  bool electrostatic, ewald, wolf;
   std::vector<int> particleKind;
   // stores molIndex for each global atom idx
   std::vector<int> particleMol;

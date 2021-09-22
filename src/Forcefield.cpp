@@ -39,6 +39,14 @@ void Forcefield::Init(const Setup& set)
   bonds.Init(set.ff.bond);
   angles->Init(set.ff.angle);
   dihedrals.Init(set.ff.dih);
+  coulKind = set.config.sys.ff.COUL_KIND;
+  wolfKind = set.config.sys.ff.WOLF_KIND;
+  // Only Vlugt Wolf alters the FF behavior by removing cutoffs for Intra Undampened
+  if (wolfKind == 1){
+    isVlugtWolf = true;
+  } else {
+    isVlugtWolf = false;
+  }
 }
 
 void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
@@ -59,6 +67,7 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
 
   electrostatic = val.elect.enable;
   ewald = val.elect.ewald;
+  wolf = val.elect.wolf;
   tolerance = val.elect.tolerance;
   rswitch = val.ff.rswitch;
   dielectric = val.elect.dielectric;
@@ -88,6 +97,14 @@ void Forcefield::InitBasicVals(config_setup::SystemVals const& val,
     alphaSq[b] = alpha[b] * alpha[b];
     recip_rcut[b] = -2.0 * log(tolerance) / rCutCoulomb[b];
     recip_rcut_Sq[b] = recip_rcut[b] * recip_rcut[b];
+    if (wolf){
+      wolfAlpha[b] = val.elect.wolfAlpha[b];
+      wolfFactor1[b] = erfc(wolfAlpha[b]*rCutCoulomb[b])/rCutCoulomb[b];
+      wolfFactor2[b] = wolfAlpha[b] *  M_2_SQRTPI;
+      wolfFactor2[b] *= exp(-1.0*pow(wolfAlpha[b], 2.0)*rCutCoulombSq[b])/rCutCoulomb[b];
+      wolfFactor2[b] += wolfFactor1[b]/rCutCoulombSq[b];
+      wolfFactor3[b] = wolfAlpha[b] *  M_2_SQRTPI;
+    }
   }
 
   vdwGeometricSigma = val.ff.vdwGeometricSigma;

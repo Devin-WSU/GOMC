@@ -55,17 +55,21 @@ public:
   double tolerance;               //Ewald sum terms
   double rswitch;                 //Switch distance
   double dielectric;              //dielectric for martini
+  double wolfAlpha[BOX_TOTAL], wolfFactor1[BOX_TOTAL], wolfFactor2[BOX_TOTAL], wolfFactor3[BOX_TOTAL]; //alpha term for Wolf Electrostatic and constant factors
   double scaling_14;              //!<Scaling factor for 1-4 pairs' ewald interactions
   double sc_alpha;                // Free energy parameter
   double sc_sigma, sc_sigma_6;    // Free energy parameter
 
   bool OneThree, OneFour, OneN;   //To include 1-3, 1-4 and more interaction
-  bool electrostatic, ewald;      //To consider columb interaction
+  bool electrostatic, ewald, wolf, isVlugtWolf, makeVlugtConsistentWithCassandra, useDSFIntra;    //To consider columb interaction
   bool vdwGeometricSigma;         //For sigma combining rule
   bool isMartini;
   bool exp6;
   bool freeEnergy, sc_coul;       // Free energy parameter
+  bool multiparticleEnabled;      // If true, Linear Electrostatic Calculation will use potential with force continuous at cutoff
   uint vdwKind;                   //To define VdW type, standard, shift or switch
+  uint coulKind, wolfKind;        //To define Coul type (if Wolf), dampened shift potential or dampened shift force
+
   uint exckind;                   //To define  exclude kind, 1-2, 1-3, 1-4
   uint sc_power;                  // Free energy parameter
 #if ENSEMBLE == GCMC
