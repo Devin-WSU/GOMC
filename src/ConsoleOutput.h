@@ -7,6 +7,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #ifndef CONSOLE_OUTPUT_H
 #define CONSOLE_OUTPUT_H
 
+#include <limits>
+
+typedef std::numeric_limits< double > dbl;
 #include "BasicTypes.h" //For uint
 #include "OutputAbstracts.h"
 #include "Molecules.h"
@@ -66,7 +69,7 @@ public:
   virtual void DoOutput(const ulong step);
 
 private:
-  const static int elementWidth = 16;
+  const static int elementWidth = 26;
   bool enableEnergy, enablePressure, enableDens, enableVolume, enableMol;
   bool enableSurfTension, enableStat;
   void PrintMove(const uint box, const ulong step) const;

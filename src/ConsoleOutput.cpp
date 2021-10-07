@@ -265,7 +265,7 @@ void ConsoleOutput::PrintEnergy(const uint box, Energy const& en,
   title += numStr + ":";
   printElementStep(title, step + 1, elementWidth);
 
-  printElement(en.total, elementWidth);
+  printElement(en.total, elementWidth, dbl::max_digits10);
   printElement(en.intraBond, elementWidth);
   printElement(en.intraNonbond, elementWidth);
   printElement(en.inter, elementWidth);
