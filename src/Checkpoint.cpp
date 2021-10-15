@@ -169,3 +169,10 @@ void Checkpoint::GatherRandomNumbersParallelTempering(PRNG & prngPTRef)
   seedPT = prngPTRef.GetGenerator()->seedValue;
 }
 #endif
+ #if GOMC_GTEST || GOMC_GTEST_MPI
+    	/*
+    	void Checkpoint::GatherTotalEnergy(System & sysRef){
+    	totalEnergy = sysRef.potential.totalEnergy.total;
+    	}
+    	*/
+    #endif

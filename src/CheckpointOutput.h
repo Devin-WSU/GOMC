@@ -15,7 +15,9 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include <iostream>
 #include "GOMC_Config.h"
 #include "Checkpoint.h"
-
+#if GOMC_GTEST || GOMC_GTEST_MPI
+#include "System.h"
+#endif
 class CheckpointOutput : public OutputableBase
 {
 public:
@@ -61,6 +63,7 @@ private:
   Molecules const & molRef;
   PRNG & prngRef;
   Coordinates & coordCurrRef;
+  System & sysRef;
 #if GOMC_LIB_MPI
   PRNG & prngPTRef;
 #endif

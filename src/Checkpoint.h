@@ -21,7 +21,11 @@ along with this program, also can be found at <http://www.gnu.org/licenses/>.
 #include "Molecules.h"
 #include "PRNG.h"
 #include <stdint.h>
-
+#if GOMC_GTEST || GOMC_GTEST_MPI
+#include <fstream>
+#include "System.h"
+#endif
+class System;
 class Checkpoint
 {
     public:
@@ -63,7 +67,10 @@ class Checkpoint
         void GatherParallelTemperingBoolean(bool & parallelTemperingIsEnabled);
         void GatherRandomNumbersParallelTempering(PRNG & prngPTRef);
     #endif
-
+    
+    #if GOMC_GTEST || GOMC_GTEST_MPI
+    	void GatherTotalEnergy(System & sysRef);
+    #endif
 
         // the following variables will hold the data read from checkpoint
         // and will be passed to the rest of the code via Get functions
@@ -109,6 +116,10 @@ class Checkpoint
 
         uint32_t saveArrayPT[N_array_size+1];
         uint32_t seedLocationPT, seedLeftPT, seedValuePT;
+        #endif
+        
+        #if GOMC_GTEST || GOMC_GTEST_MPI 
+        double totalEnergy;
         #endif
 
         friend class cereal::access;
@@ -158,6 +169,14 @@ class Checkpoint
             }
             #endif
         }
+        #if GOMC_GTEST || GOMC_GTEST_MPI
+        /*
+        void checkpointEnergy(){
+        std::ofstream os("energy.dat");
+        cereal::BinaryOutputArchive oarchive(os);
+        oarchive(totalEnergy);}
+        */
+        #endif
 };
 
 #endif

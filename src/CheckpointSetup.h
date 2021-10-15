@@ -97,6 +97,7 @@ private:
   bool & parallelTemperingIsEnabled;
   PRNG & prngPT;
 #endif
+  class Checkpoint;
   Checkpoint chkObj;  
   friend class CheckpointOutput;
 };
